@@ -274,7 +274,7 @@ class Link(BaseObject):
         all_facts = await operation.all_facts() if operation else self.facts
         source = operation.id if operation else self.id
         rl = [relationship] if relationship else []
-        if all([fact.trait, fact.value]):
+        if fact and fact.trait is not None and fact.value is not None:
             if operation and operation.source:
                 if any([(fact.trait, fact.value) == (x.trait, x.value) for x in
                         await knowledge_svc_handle.get_facts(criteria=dict(source=operation.source.id))]):
