@@ -40,7 +40,7 @@ COPY --from=ui-build /usr/src/app/plugins/magma/dist /usr/src/app/plugins/magma/
 # From https://docs.docker.com/build/building/best-practices/
 # Install caldera dependencies
 RUN apt-get update && \
-apt-get --no-install-recommends -y install git curl unzip python3-dev python3-pip golang-go mingw-w64 zlib1g gcc && \
+apt-get --no-install-recommends -y install git curl unzip python3-dev python3-pip golang-go mingw-w64 zlib1g gcc vim && \
 rm -rf /var/lib/apt/lists/*
 
 # Fix line ending error that can be caused by cloning the project in a Windows environment
