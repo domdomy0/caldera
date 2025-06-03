@@ -1,0 +1,24 @@
+---
+- id: c3d4e5f6-a7b8-4c9d-8e0f-1a2b3c4d5e6f
+  name: Gather Local System Information
+  description: Gather basic system information like hostname and OS.
+  tactic: discovery 
+  technique:
+    attack_id: T1082 
+    name: "System Information Discovery"
+  platforms:
+    windows:
+      psh:
+        command: |
+          Write-Host "Phase 3: Gathering system information."; systeminfo | findstr /B /C:"Host Name" /C:"OS Name" /C:"OS Version"
+        parsers:
+          plugins.adversary_emulation_thesis.app.parsers.thesis_kv_parser:
+            - source: host.hostname
+              custom_parser_vals:
+                regex: 'Host Name:\s+(.+)'
+            - source: host.os.name
+              custom_parser_vals:
+                regex: 'OS Name:\s+(.+)'
+            - source: host.os.version
+              custom_parser_vals:
+                regex: 'OS Version:\s+(.+)'

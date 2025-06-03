@@ -1,0 +1,20 @@
+---
+- id: ae1f2a3b-4c5d-46e7-8f8a-9b0c1d2e3f4a
+  name: Lateral Movement via SMB/Admin Shares Sim
+  description: Simulates lateral movement via SMB using discovered credentials and target.
+  tactic: lateral-movement 
+  technique:
+    attack_id: T1021.002
+    name: "Remote Services: SMB/Windows Admin Shares"
+  platforms:
+    windows:
+      psh:
+        command: |
+          Write-Host "Phase 7: Simulating lateral movement via SMB to #{remote.host.fqdn} using #{domain.user.name} with password #{domain.user.password}."
+#  requirements: 
+#    - plugins.stockpile.app.requirements.source_fact_exists:
+#        source: remote.host.fqdn
+#    - plugins.stockpile.app.requirements.source_fact_exists:
+#        source: domain.user.name
+#    - plugins.stockpile.app.requirements.source_fact_exists: 
+#        source: domain.user.password
