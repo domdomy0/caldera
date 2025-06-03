@@ -12,7 +12,7 @@
         command: |
           Write-Host "Discovered remote host FQDN: SIMULATED-DC-01.testdomain.local"
         parsers:
-          plugins.adversary_emulation_thesis.app.parsers.thesis_kv_parser:
+          plugins.adversary_emulation.app.parsers.regex_parser:
             - source: remote.host.fqdn 
               custom_parser_vals:
                 regex: 'Discovered remote host FQDN:\s+(.+)'
