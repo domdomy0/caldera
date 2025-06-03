@@ -12,7 +12,7 @@
         command: |
           Write-Host "Phase 3: Gathering system information."; systeminfo | findstr /B /C:"Host Name" /C:"OS Name" /C:"OS Version"
         parsers:
-          plugins.adversary_emulation_thesis.app.parsers.thesis_kv_parser:
+          plugins.adversary_emulation.app.parsers.regex_parser:
             - source: host.hostname
               custom_parser_vals:
                 regex: 'Host Name:\s+(.+)'

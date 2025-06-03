@@ -11,10 +11,10 @@
       psh:
         command: |
           Write-Host "Phase 7: Simulating lateral movement via SMB to #{remote.host.fqdn} using #{domain.user.name} with password #{domain.user.password}."
-#  requirements: 
-#    - plugins.stockpile.app.requirements.source_fact_exists:
-#        source: remote.host.fqdn
-#    - plugins.stockpile.app.requirements.source_fact_exists:
-#        source: domain.user.name
-#    - plugins.stockpile.app.requirements.source_fact_exists: 
-#        source: domain.user.password
+  requirements: 
+    - plugins.stockpile.app.requirements.source_fact_exists:
+        source: remote.host.fqdn
+    - plugins.stockpile.app.requirements.source_fact_exists:
+        source: domain.user.name
+    - plugins.stockpile.app.requirements.source_fact_exists: 
+        source: domain.user.password
