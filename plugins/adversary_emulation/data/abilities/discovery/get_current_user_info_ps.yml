@@ -1,0 +1,44 @@
+# UUID: e5f6a7b8-c9d0-4e1f-8a2b-3c4d5e6f72
+id: e5f6a7b8-c9d0-4e1f-8a2b-3c4d5e6f72
+name: Get Current User, Groups, and Privileges (PowerShell)
+description: Gathers detailed information about the current user context using PowerShell.
+tactic: discovery
+technique_id: T1033 # System Owner/User Discovery
+privilege: User
+platforms:
+  windows:
+    psh:
+      command: |
+        $ErrorActionPreference = "SilentlyContinue"
+        $userInfo = @{}
+        $userInfo.UserName = $env:USERNAME
+        $userInfo.UserDomain = $env:USERDOMAIN
+        $userInfo.ComputerName = $env:COMPUTERNAME
+        try {
+            $currentUser = New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent())
+            $userInfo.UserSID = $currentUser.Identity.User.Value
+            $userInfo.Groups = ($currentUser.Claims | Where-Object {$_.Type -eq $currentUser.Identity.RoleClaimType} | Select-Object -ExpandProperty Value) -join "; "
+            $token = [System.Security.Principal.WindowsIdentity]::GetCurrent().Token
+            $privileges = [System.Enum]::GetNames([System.Security.Principal.TokenPrivileges]) | ForEach-Object {
+                if ([System.Security.Principal.WindowsPrincipal]::new([System.Security.Principal.WindowsIdentity]::new($token)).IsInRole($_)) { $_ }
+            }
+            $userInfo.Privileges = $privileges -join "; "
+        } catch {
+            $userInfo.Error_UserPrincipal = "Failed to get principal info: $($_.Exception.Message)"
+        }
+        $userInfo.WhoamiAll = (whoami /all | Out-String -ErrorAction SilentlyContinue)
+        $userInfo | ConvertTo-Json -Compress
+      parsers:
+        plugins.stockpile.app.parsers.json:
+          - source: host.user.name
+            edge: IsNamed
+            json_key: UserName
+          - source: host.user.sid
+            edge: HasSid
+            json_key: UserSID
+          - source: host.user.groups_str
+            edge: BelongsToGroups
+            json_key: Groups
+          - source: host.user.privileges_str
+            edge: HasPrivileges
+            json_key: Privileges

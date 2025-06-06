@@ -1,0 +1,17 @@
+# UUID: e9f1a2b3-c4d5-4e6f-8a7b-0c1d2e3f4a5b
+id: e9f1a2b3-c4d5-4e6f-8a7b-0c1d2e3f4a5b
+name: Create Scheduled Task for Caldera Agent Startup
+description: Creates a scheduled task to run the Caldera agent PowerShell script at system startup.
+tactic: persistence
+technique_id: T1053.005 # Scheduled Task
+privilege: Administrator # To create a task running as SYSTEM
+requirements:
+  - source: file.path.agent_startup_script # Requires the script path from the previous ability
+    edge: WasCreated
+platforms:
+  windows:
+    cmd:
+      command: |
+        schtasks /CREATE /TN "CalderaAgentBoot" /TR "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"#{file.path.agent_startup_script}\"" /SC ONSTART /RU SYSTEM /F /RL HIGHEST
+      cleanup: |
+        schtasks /DELETE /TN "CalderaAgentBoot" /F

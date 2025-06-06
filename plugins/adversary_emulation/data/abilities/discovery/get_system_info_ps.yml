@@ -1,0 +1,50 @@
+# UUID: c3d4e5f6-a7b8-4c9d-8e0f-1a2b3c4d5e70
+id: c3d4e5f6-a7b8-4c9d-8e0f-1a2b3c4d5e70
+name: Gather System Information (PowerShell JSON)
+description: Gathers detailed system information using PowerShell and outputs as JSON.
+tactic: discovery
+technique_id: T1082 # System Information Discovery
+privilege: User
+platforms:
+  windows:
+    psh:
+      command: |
+        $ErrorActionPreference = "SilentlyContinue"
+        $sysInfo = [PSCustomObject]@{
+            FactCollectionTimestamp = (Get-Date -Format "yyyy-MM-dd HH:mm:ss UTC")
+            Hostname                = $env:COMPUTERNAME
+            CurrentUser             = $env:USERNAME
+            UserDomain              = $env:USERDOMAIN
+        }
+        try {
+            $os = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
+            $sysInfo | Add-Member -MemberType NoteProperty -Name "OS_Caption" -Value $os.Caption
+            $sysInfo | Add-Member -MemberType NoteProperty -Name "OS_Version" -Value $os.Version
+            $sysInfo | Add-Member -MemberType NoteProperty -Name "OS_BuildNumber" -Value $os.BuildNumber
+            $sysInfo | Add-Member -MemberType NoteProperty -Name "OS_Architecture" -Value $os.OSArchitecture
+        } catch {}
+        try {
+            $cs = Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop
+            $sysInfo | Add-Member -MemberType NoteProperty -Name "CS_Domain" -Value $cs.Domain
+            $sysInfo | Add-Member -MemberType NoteProperty -Name "CS_PartOfDomain" -Value $cs.PartOfDomain
+            $sysInfo | Add-Member -MemberType NoteProperty -Name "CS_Manufacturer" -Value $cs.Manufacturer
+            $sysInfo | Add-Member -MemberType NoteProperty -Name "CS_Model" -Value $cs.Model
+        } catch {}
+        $sysInfo | ConvertTo-Json -Compress
+      parsers:
+        plugins.stockpile.app.parsers.json:
+          - source: host.hostname
+            edge: IsNamed
+            json_key: Hostname
+          - source: host.user.name
+            edge: IsCurrentUser
+            json_key: CurrentUser
+          - source: host.domain.name
+            edge: IsMemberOfDomain
+            json_key: UserDomain # Or CS_Domain from the more comprehensive script
+          - source: host.os.caption
+            edge: HasOSCaption
+            json_key: OS_Caption
+          - source: host.os.version
+            edge: HasOSVersion
+            json_key: OS_Version

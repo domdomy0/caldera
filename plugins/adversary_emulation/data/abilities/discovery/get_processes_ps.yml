@@ -1,0 +1,17 @@
+# UUID: d4e5f6a7-b8c9-4d0e-8f1a-2b3c4d5e6f71
+id: d4e5f6a7-b8c9-4d0e-8f1a-2b3c4d5e6f71
+name: Discover Processes (PowerShell JSON)
+description: Lists running processes with details and outputs as JSON.
+tactic: discovery
+technique_id: T1057 # Process Discovery
+privilege: User
+platforms:
+  windows:
+    psh:
+      command: |
+        Get-Process | Select-Object Name, Id, Path, Company, Description, CPU, Handles, WorkingSet, StartTime, MainWindowTitle | ConvertTo-Json -Compress
+      parsers:
+        plugins.stockpile.app.parsers.json:
+          - source: host.processes.listjson # Stores the entire JSON string of processes
+            edge: HasProcesses
+            json_key: "" # This gets the entire output if it's a valid JSON array

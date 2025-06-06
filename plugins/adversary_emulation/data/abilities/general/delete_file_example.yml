@@ -1,0 +1,19 @@
+# UUID: a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5e
+id: a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5e
+name: Delete Specific File
+description: Deletes a specified file from the target system.
+tactic: defense-evasion
+technique_id: T1070.004 # File Deletion
+privilege: User
+platforms:
+  windows:
+    psh:
+      command: |
+        $filePathToDelete = "#{file.to.delete}" # This fact needs to be set by a preceding ability or as an operation variable
+        if (-not $filePathToDelete) { $filePathToDelete = "C:\Users\Public\temp_file_to_delete.tmp" } # Default example
+        if (Test-Path $filePathToDelete) {
+            Remove-Item -Path $filePathToDelete -Force -ErrorAction SilentlyContinue
+            Write-Host "Attempted to delete file: $filePathToDelete"
+        } else {
+            Write-Host "File not found, no deletion attempted: $filePathToDelete"
+        }

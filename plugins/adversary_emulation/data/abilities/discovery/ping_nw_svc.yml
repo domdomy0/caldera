@@ -1,0 +1,40 @@
+---
+- id: bb81f304-36ce-47fc-b4ed-206ce9196dfd
+  name: Ping DNS and Gateway and Relate Reachability
+  description: Pings DNS server and Gateway discovered from previous steps. Creates a relationship if ping is successful.
+  tactic: discovery # Could also be reconnaissance against specific targets
+  technique:
+    attack_id: T1018 # Remote System Discovery (ping is a form of it)
+    name: "Remote System Discovery"
+  platforms:
+    windows:
+      psh:
+        command: |
+          $DnsTarget = "#{host.dns.server}";
+          $DnsPingResult = Test-Connection -ComputerName $DnsTarget -Count 1 -Quiet -ErrorAction SilentlyContinue;
+          if ($DnsPingResult) {
+            "DNSReachable: $($DnsTarget)"; # Output string to STDOUT
+          } else {
+            "DNSNotReachable: $($DnsTarget)"; # Output string to STDOUT
+          };
+          $GatewayTarget = "#{host.ip.gateway}";
+          $GatewayPingResult = Test-Connection -ComputerName $GatewayTarget -Count 1 -Quiet -ErrorAction SilentlyContinue;
+          if ($GatewayPingResult) {
+            "GatewayReachable: $($GatewayTarget)"; # Output string to STDOUT
+          } else {
+            "GatewayNotReachable: $($GatewayTarget)"; # Output string to STDOUT
+          };
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            - source: 'network.device.reachable.dns'
+              custom_parser_vals:
+                regex: 'DNSReachable:\s*(\S+)'
+                edge_label: 'successfully_pinged_device'
+            - source: 'network.device.reachable.gateway'
+              custom_parser_vals:
+                regex: 'GatewayReachable:\s*(\S+)'
+                edge_label: 'successfully_pinged_device'
+  requirements:
+    - plugins.stockpile.app.requirements.existential:
+      - source: host.dns.server
+      - source: host.ip.gateway

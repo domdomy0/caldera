@@ -250,7 +250,7 @@ class Link(BaseObject):
     async def _parse_link_result(self, result, parser, source_facts):
         blob = b64decode(result).decode('utf-8')
         parser_info = dict(module=parser.module, used_facts=self.used, mappers=parser.parserconfigs,
-                           source_facts=source_facts)
+                           source_facts=source_facts, agent_hostname=self.host) 
         p_inst = await self._load_module('Parser', parser_info)
         return p_inst.parse(blob=blob)
 
