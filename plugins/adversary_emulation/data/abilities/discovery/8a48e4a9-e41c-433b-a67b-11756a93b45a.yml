@@ -1,0 +1,21 @@
+- id: 8a48e4a9-e41c-433b-a67b-11756a93b45a
+  name: Discovery - Find Writable Services
+  description: Uses a common enumeration tool (accesschk) to find Windows services that are dangerously misconfigured to be modifiable by low-privileged users. Automatically accepts the EULA.
+  tactic: discovery
+  technique:
+    attack_id: T1574.011
+    name: "Hijack Execution Flow: Services File Permissions Weakness"
+  platforms:
+    windows:
+      psh:
+        # Assumes accesschk.exe is delivered via Caldera's payload delivery mechanism and is located at this path.
+        command: |
+          C:\Users\Public\accesschk.exe -accepteula -uwcqv "Authenticated Users" *
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            # The output of accesschk gives Read/Write (RW) access. We capture the service name.
+            - source: 'service.name.writable'
+              custom_parser_vals:
+                # This regex looks for a line that has RW permissions and captures the service name.
+                regex: '^\s*(\S+)\s+RW\s+.*'
+                edge_label: 'is_writable_service'
