@@ -1,0 +1,22 @@
+- id: 4e9b9821-b353-4155-9430-5881023c1043
+  name: Domain Trust Discovery
+  description: Discovers the Domain Controller for a given domain using nltest.
+  tactic: discovery
+  technique:
+    attack_id: T1482
+    name: "Domain Trust Discovery"
+  requirements:
+    - plugins.stockpile.app.requirements.existential:
+      - source: domain.name
+  platforms:
+    windows:
+      psh:
+        command: |
+          nltest /dsgetdc:#{domain.name}
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            # Rule 1: Extract the Domain Controller's FQDN from the output.
+            - source: 'host.dc.name'
+              custom_parser_vals:
+                regex: '^\s*DC:\s*\\\\(\S+)'
+                edge_label: 'is_a_dc'

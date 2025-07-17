@@ -1,0 +1,33 @@
+- id: e6824b53-b21b-4f4a-9e19-482d8a43697e
+  name: Account Discovery - Domain Users
+  description: Enumerates all user accounts in the current domain using the native 'net' command and PowerShell text processing to isolate the user list from header/footer text.
+  tactic: discovery
+  technique:
+    attack_id: T1087.002
+    name: "Account Discovery: Domain Account"
+  platforms:
+    windows:
+      psh:
+        # This command block is designed to be highly robust for parsing the output of 'net user /domain'.
+        command: |
+          $processBlock = $false;
+          (net user /domain) | ForEach-Object {
+              if ($_ -like '---*') {
+                  $processBlock = $true;
+                  return;
+              }
+              if ($_ -like 'The command completed successfully*') {
+                  $processBlock = $false;
+              }
+              if ($processBlock) {
+                  $_.Trim().Split([string[]]' ', [System.StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object {
+                      Write-Host $_;
+                  }
+              }
+          }
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            # The command now produces a clean list of one username per line. The parser can be extremely simple.
+            - source: 'user.name'
+              custom_parser_vals:
+                regex: '^(.*)$'

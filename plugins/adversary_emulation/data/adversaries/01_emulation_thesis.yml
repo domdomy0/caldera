@@ -2,10 +2,5 @@ id: d76159c1-d78a-4e77-8c5d-49f1141acc63
 name: 01_emulation_thesis
 description: Adversary profile for thesis ransomware precursor emulation.
 objective: 495a9828-cab1-44dd-a0ca-66e58177d8cc
-atomic_ordering:
-  - 2d3f5a6b-7c8e-4f1a-9b0d-1e2f3a4b5c6d 
-  - b8c9d0e1-f2a3-4b4c-8d5e-6f7a8b9c0d1e 
-  - c3d4e5f6-a7b8-4c9d-8e0f-1a2b3c4d5e6f    
-  - 1c2d3e4f-5a6b-47c8-8d9e-0f1a2b3c4d5e 
-  - 5f6a7b8c-9d0e-41f2-8a3b-4c5d6e7f8a9b 
-  - ae1f2a3b-4c5d-46e7-8f8a-9b0c1d2e3f4a 
+#atomic_ordering:
+

@@ -12,7 +12,7 @@ platforms:
         $scriptDirectory = "C:\Users\Public"
         $scriptPath = Join-Path -Path $scriptDirectory -ChildPath "UpdateTask.ps1"
         $agentPath = "C:\Users\Public\splunkd.exe" # Path to your Caldera agent
-        $serverAddress = "http://10.2.20.2:8888" # Your Caldera server address
+        $serverAddress = "http://10.2.10.2:8888" # Your Caldera server address
         $agentGroup = "red" # Your Caldera agent group
 
         $scriptContent = @"

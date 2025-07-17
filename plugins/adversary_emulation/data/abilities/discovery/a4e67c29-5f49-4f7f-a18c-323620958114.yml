@@ -1,0 +1,29 @@
+- id: a4e67c29-5f49-4f7f-a18c-323620958114
+  name: Discover Kerberoastable User Accounts
+  description: Uses a targeted PowerShell LDAP query to find *user* accounts (excluding computer accounts) with SPNs.
+  tactic: discovery
+  technique:
+    attack_id: T1558.003
+    name: "Kerberoasting"
+  platforms:
+    windows:
+      psh:
+        command: |
+          $searcher = New-Object System.DirectoryServices.DirectorySearcher;
+          # This filter is now refined to ONLY find non-disabled user accounts.
+          $searcher.Filter = "(&(servicePrincipalName=*)(samAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
+          $results = $searcher.FindAll();
+          foreach ($result in $results) {
+              $user = $result.Properties.samaccountname;
+              foreach ($spn in $result.Properties.serviceprincipalname) {
+                  # Print a distinct, parsable line for EACH SPN found for the user.
+                  Write-Host "RoastableUser: $($user) | SPN: $($spn)";
+              }
+          };
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            # This parser can now reliably handle one or more SPNs per user.
+            - source: 'host.spn.value'
+              custom_parser_vals:
+                regex: 'SPN:\s*(.+)'
+                edge_label: 'has_spn_for_user'

