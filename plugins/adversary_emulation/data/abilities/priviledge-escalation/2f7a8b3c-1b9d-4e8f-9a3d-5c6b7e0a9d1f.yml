@@ -1,0 +1,16 @@
+- id: 2f7a8b3c-1b9d-4e8f-9a3d-5c6b7e0a9d1f
+  name: Privilege Escalation - Start Service
+  description: Starts the reconfigured service to trigger the execution of the payload with SYSTEM privileges.
+  tactic: privilege-escalation
+  technique:
+    attack_id: T1543.003
+    name: "Create or Modify System Process: Windows Service"
+  requirements:
+    - plugins.stockpile.app.requirements.existential:
+      - source: service.path.modified
+      - source: service.name.writable
+  platforms:
+    windows:
+      psh:
+        command: |
+          sc.exe start #{service.path.writable};
