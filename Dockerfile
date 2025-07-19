@@ -39,9 +39,22 @@ COPY --from=ui-build /usr/src/app/plugins/magma/dist /usr/src/app/plugins/magma/
 
 # From https://docs.docker.com/build/building/best-practices/
 # Install caldera dependencies
+
+# Define Go version to match the project's requirements
+ARG GO_VERSION=1.24.5 
+
+# Install caldera dependencies from apt, but NOT golang-go
 RUN apt-get update && \
-apt-get --no-install-recommends -y install git curl unzip python3-dev python3-pip golang-go mingw-w64 zlib1g gcc vim && \
-rm -rf /var/lib/apt/lists/*
+    apt-get --no-install-recommends -y install git curl unzip python3-dev python3-pip mingw-w64 zlib1g gcc vim && \
+    rm -rf /var/lib/apt/lists/*
+
+# Manually download and install the required version of Go
+RUN curl -L https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz -o go.tar.gz && \
+    tar -C /usr/local -xzf go.tar.gz && \
+    rm go.tar.gz
+
+# Add the new Go binary location to the system's PATH
+ENV PATH="/usr/local/go/bin:${PATH}"
 
 # Fix line ending error that can be caused by cloning the project in a Windows environment
 RUN cd /usr/src/app/plugins/sandcat; tr -d '\15\32' < ./update-agents.sh > ./update-agents.sh
