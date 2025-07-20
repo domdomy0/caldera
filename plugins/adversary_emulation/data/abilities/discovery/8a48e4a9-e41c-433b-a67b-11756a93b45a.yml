@@ -18,5 +18,5 @@
             # This regex is designed to find lines containing 'RW' and capture the service name at the beginning.
             - source: 'service.name.writable'
               custom_parser_vals:
-                regex: '^\s*(\S+)\s+RW'
+                regex: '^RW\s+(\S+)'
                 edge_label: 'is_writable_service'
