@@ -24,5 +24,3 @@
               custom_parser_vals:
                 regex: "SUCCESS: '(.+)'"
                 edge_label: 'has_persistence_method'
-        cleanup:
-          - Unregister-ScheduledTask -TaskName "OneDriveSyncc" -Confirm:$false

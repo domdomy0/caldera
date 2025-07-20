@@ -8,11 +8,10 @@
   platforms:
     windows:
       psh:
-        # This ability uses the built-in 'payload' variable to specify the file to download.
         payloads:
           - accesschk64.exe
         command: |
-          .\#{payload} -accepteula -uwcqv "Authenticated Users" * | Out-String | Select-String "RW"
+          .\accesschk64.exe-accepteula -uwcqv "Authenticated Users" * | Out-String | Select-String "RW"
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
             # This regex is designed to find lines containing 'RW' and capture the service name at the beginning.
