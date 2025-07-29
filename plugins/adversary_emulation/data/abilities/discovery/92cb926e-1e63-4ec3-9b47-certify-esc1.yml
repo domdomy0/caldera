@@ -16,5 +16,5 @@
           plugins.adversary_emulation.app.parsers.regex_parser:
             - source: 'esc1.template'
               custom_parser_vals:
-                regex: '(?s)\[!\] Vulnerable Certificates Templates\s*:.*?Template Name\s*:\s*([^\r\n]+)'
+                regex: '\s*Template Name\s*:\s*([\w-]+)'
                 edge_label: 'is_esc1_vulnerable'
