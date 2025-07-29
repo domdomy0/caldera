@@ -12,6 +12,7 @@ from io import BytesIO
 from reportlab import rl_settings
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Spacer
 
 from app.service.auth_svc import for_all_public_methods, check_authorization

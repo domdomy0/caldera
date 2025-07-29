@@ -1,4 +1,5 @@
 from reportlab.lib import colors
+from reportlab.lib.units import inch
 from reportlab.platypus import Image, Paragraph, Table, TableStyle
 from reportlab.platypus.flowables import KeepTogetherSplitAtTop
 from svglib.svglib import svg2rlg
@@ -54,26 +55,31 @@ class BaseReportSection:
         aspect = graph.height / float(graph.width)
         return Image(graph, width=width, height=(width * aspect))
 
-    @staticmethod
-    def generate_table(data, col_widths):
-        data[1:] = [[Story.get_table_object(val) for val in row] for row in data[1:]]
-        tbl = Table(data, colWidths=col_widths, repeatRows=1)
-        tbl.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.maroon),
-                                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-                                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                                 ('FONTSIZE', (0, 1), (-1, -1), 8),
-                                 ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                                 ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                                 ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.white),
-                                 ('BOX', (0, 0), (-1, -1), 0.5, colors.black),
-                                 ]))
-        for each in range(1, len(data)):
-            if each % 2 == 0:
-                bg_color = colors.lightgrey
-            else:
-                bg_color = colors.whitesmoke
-
-            tbl.setStyle(TableStyle([('BACKGROUND', (0, each), (-1, each), bg_color)]))
+    @staticmethod  
+    def generate_table(data, col_widths):  
+        data[1:] = [[Story.get_table_object(val) for val in row] for row in data[1:]]  
+        tbl = Table(data, colWidths=col_widths, repeatRows=1, rowHeights=None)  
+        
+        # Add maximum row height constraint  
+        max_row_height = 2 * inch  # Adjust this value as needed  
+        
+        tbl.setStyle(TableStyle([  
+            ('BACKGROUND', (0, 0), (-1, 0), colors.maroon),  
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),  
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  
+            ('FONTSIZE', (0, 1), (-1, -1), 8),  
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),  
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),  
+            ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.white),  
+            ('BOX', (0, 0), (-1, -1), 0.5, colors.black),  
+            # Add row height constraint  
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.lightgrey, colors.whitesmoke]),  
+        ]))  
+        
+        # Set maximum row heights for data rows  
+        for row_idx in range(1, len(data)):  
+            tbl.setStyle(TableStyle([('ROWHEIGHT', (0, row_idx), (-1, row_idx), max_row_height)]))  
+        
         return tbl
 
     @staticmethod

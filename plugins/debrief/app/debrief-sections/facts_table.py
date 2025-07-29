@@ -1,4 +1,4 @@
-from reportlab.lib.units import inch
+from reportlab.lib.units import inch0
 from reportlab.platypus import Paragraph
 from reportlab.platypus.flowables import KeepTogetherSplitAtTop
 
@@ -49,11 +49,42 @@ class DebriefReportSection(BaseReportSection):
             else:
                 paw_value = f'{f.source[:3] + ".." + f.source[-3:]}'
                 command_value = f'No Command ({f.origin_type.name})'
-            fact_data.append(
-                [f.trait,
-                 f.value if len(f.value) < TABLE_CHAR_LIMIT else f.value[:TABLE_CHAR_LIMIT] + exceeds_cell_msg,
-                 str(f.score),
-                 paw_value,
-                 command_value])
+            fact_data.append([  
+            self._truncate_for_cell(f.trait, max_chars=200, max_lines=3),  # Trait column is narrower  
+            self._truncate_for_cell(f.value, max_chars=800, max_lines=15), # Value column gets more space  
+            str(f.score),  
+            paw_value,  # Keep paw_value as is since it's controlled  
+            self._truncate_for_cell(command_value, max_chars=600, max_lines=10)  # Also truncate commands  
+        ])
 
         return self.generate_table(fact_data, [1 * inch, 2.1 * inch, .6 * inch, .6 * inch, 2.1 * inch])
+
+    def _truncate_for_cell(self, text, max_chars=800, max_lines=10):  
+        """Truncate text to fit within table cell constraints"""  
+        if not text:  
+            return text  
+            
+        # Convert to string if not already  
+        text = str(text)  
+        
+        # First check line count  
+        lines = text.split('\n')  
+        if len(lines) > max_lines:  
+            # Too many lines, truncate by lines first  
+            truncated_lines = lines[:max_lines-1]  
+            truncated_lines.append('... <font color="maroon"><i>(Content truncated - too many lines)</i></font>')  
+            text = '\n'.join(truncated_lines)  
+        
+        # Then check character count  
+        if len(text) > max_chars:  
+            # Find a good break point (try to break at word boundary)  
+            truncate_point = max_chars - 100  # Leave room for truncation message  
+            
+            # Try to find last space before truncate point  
+            last_space = text.rfind(' ', 0, truncate_point)  
+            if last_space > truncate_point - 50:  # If space is reasonably close  
+                truncate_point = last_space  
+            
+            text = text[:truncate_point] + '... <font color="maroon"><i>(Content truncated - too long)</i></font>'  
+        
+        return text
