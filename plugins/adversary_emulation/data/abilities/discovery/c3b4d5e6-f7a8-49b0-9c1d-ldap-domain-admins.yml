@@ -26,6 +26,6 @@
           plugins.adversary_emulation.app.parsers.regex_parser:
             # This parser will find every line starting with "Found DA: " and create a fact.
             - source: 'esc1.target_user'
-              edge_label: 'is_domain_admin'
               custom_parser_vals:
                 regex: 'Found DA:\s+(.*)'
+                edge_label: 'is_domain_admin'

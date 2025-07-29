@@ -31,6 +31,6 @@
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
             - source: 'file.ntds.exfiltrated_path'
-              edge_label: 'was_exfiltrated_to'
               custom_parser_vals:
                 regex: 'NTDS-Exfiltrated-To:\s+(.*)'
+                edge_label: 'was_exfiltrated_to'

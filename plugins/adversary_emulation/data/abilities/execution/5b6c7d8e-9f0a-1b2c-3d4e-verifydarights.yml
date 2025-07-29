@@ -22,6 +22,6 @@
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
             - source: 'domain.admin.pwned'
-              edge_label: 'is_pwned'
               custom_parser_vals:
                 regex: 'Domain-Admin-Access-Confirmed:\s+TRUE'
+                edge_label: 'is_pwned'

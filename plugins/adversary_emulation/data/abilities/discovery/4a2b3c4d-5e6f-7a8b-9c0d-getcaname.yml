@@ -32,6 +32,6 @@
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
             - source: 'adcs.ca.name_full'
-              edge_label: 'is_ca_for_domain'
               custom_parser_vals:
                 regex: 'Found-CA-Name:\s+(.*)'
+                edge_label: 'is_ca_for_domain'
