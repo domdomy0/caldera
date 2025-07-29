@@ -9,26 +9,19 @@
     windows:
       psh:
         command: |
-          # Get the Configuration naming context
-          $rootDSE = [ADSI]"LDAP://RootDSE"
-          $configDN = $rootDSE.configurationNamingContext
-          $searchRoot = "LDAP://$configDN"
-
-          # Build the searcher
-          $searcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]$searchRoot)
-          $searcher.Filter = "(objectClass=pkiEnrollmentService)"
-
-          # Run the search
-          $ca = $searcher.FindOne()
-
-          # Output CA info if found
+          $rootDSE = [ADSI]"LDAP://RootDSE";
+          $configDN = $rootDSE.configurationNamingContext;
+          $searchRoot = "LDAP://$configDN";
+          $searcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]$searchRoot);
+          $searcher.Filter = "(objectClass=pkiEnrollmentService)";
+          $ca = $searcher.FindOne();
           if ($ca) {
-              $caName = $ca.Properties["cn"][0]
-              $dnsName = $ca.Properties["dnshostname"][0]
-              Write-Host "Found-CA-Name: $dnsName\$caName"
+              $caName = $ca.Properties["cn"][0];
+              $dnsName = $ca.Properties["dnshostname"][0];
+              Write-Host "Found-CA-Name: $dnsName\$caName";
           } else {
-              Write-Host "No Enterprise CA found."
-          }
+              Write-Host "No Enterprise CA found.";
+          };
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
             - source: 'adcs.ca.name_full'

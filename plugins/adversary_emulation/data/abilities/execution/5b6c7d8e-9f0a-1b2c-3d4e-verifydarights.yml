@@ -12,13 +12,13 @@
     windows:
       psh:
         command: |
-          $dc = "#{domain.controller.hostname}"
+          $dc = "#{domain.controller.hostname}";
           try {
-              $null = ls \\$dc\c$ -ErrorAction Stop
-              Write-Host "Domain-Admin-Access-Confirmed: TRUE"
+              $null = ls \\$dc\c$ -ErrorAction Stop;
+              Write-Host "Domain-Admin-Access-Confirmed: TRUE";
           } catch {
-              Write-Host "Domain-Admin-Access-Confirmed: FALSE"
-          }
+              Write-Host "Domain-Admin-Access-Confirmed: FALSE";
+          };
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
             - source: 'domain.admin.pwned'

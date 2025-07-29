@@ -8,6 +8,8 @@
   platforms:
     windows:
       psh:
+        payloads:
+          - Certify.exe
         command: |
           .\Certify.exe find /vulnerable
         parsers:
@@ -16,4 +18,4 @@
               custom_parser_vals:
                 # Match if block contains all 3 key indicators, extract the template name
                 regex: '(?s)Template Name\s+:\s+([^\r\n]+).*?ENROLLEE_SUPPLIES_SUBJECT.*?(Client Authentication).*?(Enrollment Rights\s+:\s+NT AUTHORITY\\Authenticated Users|Enrollment Rights\s+:\s+#{domain.name}\\\\Domain Users)'
-              edge_label: 'is_esc1_vulnerable'
+                edge_label: 'is_esc1_vulnerable'

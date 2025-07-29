@@ -9,22 +9,19 @@
     windows:
       psh:
         command: |
-          $domainPath = "GC://#{host.domain.name}"
-          $searcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]$domainPath)
-          $searcher.Filter = "(&(objectCategory=group)(name=Domain Admins))"
-          $group = $searcher.FindOne()
-
-          # Output each member's sAMAccountName
+          $domainPath = "GC://#{host.domain.name}";
+          $searcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]$domainPath);
+          $searcher.Filter = "(&(objectCategory=group)(name=Domain Admins))";
+          $group = $searcher.FindOne();
           foreach ($member in $group.Properties.member) {
-              $memberSearcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]"LDAP://$member")
-              $memberSearcher.PropertiesToLoad.Add("sAMAccountName") | Out-Null
-              $memberObject = $memberSearcher.FindOne()
-              $samAccountName = $memberObject.Properties["samaccountname"][0]
-              Write-Host "Found DA: $samAccountName"
-          }
+              $memberSearcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]"LDAP://$member");
+              $memberSearcher.PropertiesToLoad.Add("sAMAccountName") | Out-Null;
+              $memberObject = $memberSearcher.FindOne();
+              $samAccountName = $memberObject.Properties["samaccountname"][0];
+              Write-Host "Found DA: $samAccountName";
+          };
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
-            # This parser will find every line starting with "Found DA: " and create a fact.
             - source: 'esc1.target_user'
               custom_parser_vals:
                 regex: 'Found DA:\s+(.*)'

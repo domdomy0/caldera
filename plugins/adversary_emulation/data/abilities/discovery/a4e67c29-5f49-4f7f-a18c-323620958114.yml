@@ -10,13 +10,11 @@
       psh:
         command: |
           $searcher = New-Object System.DirectoryServices.DirectorySearcher;
-          # This filter is now refined to ONLY find non-disabled user accounts.
           $searcher.Filter = "(&(servicePrincipalName=*)(samAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
           $results = $searcher.FindAll();
           foreach ($result in $results) {
               $user = $result.Properties.samaccountname;
               foreach ($spn in $result.Properties.serviceprincipalname) {
-                  # Print a distinct, parsable line for EACH SPN found for the user.
                   Write-Host "RoastableUser: $($user) | SPN: $($spn)";
               }
           };
