@@ -24,6 +24,6 @@
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
             - source: 'da.impersonated'
-              edge_label: 'has_tgt_for'
               custom_parser_vals:
                 regex: 'TGT-Injection-Success:\s+(.*)'
+                edge_label: 'has_tgt_for'
