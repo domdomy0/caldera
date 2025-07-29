@@ -1,0 +1,7 @@
+id: op34d2dd-a33a-ajl0-a4l1-phase4
+name: 2_Privilege_Escalation
+description: Adversary profile for thesis ransomware precursor emulation.
+atomic_ordering:
+- 8a48e4a9-e41c-433b-a67b-11756a93b45a # Discovery - Find Writable Services
+- 
+- e3a1b4c2-d5e6-4f7a-8b9c-0d1e2f3a4b5c # Persistence - Privileged Scheduled Task (On Startup)

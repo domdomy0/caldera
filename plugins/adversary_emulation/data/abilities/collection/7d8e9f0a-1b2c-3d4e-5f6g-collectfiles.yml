@@ -19,3 +19,9 @@
           Get-ChildItem -Path \\$fileServer -Recurse -Include "*contract*", "*password*", "*secret*" | ForEach-Object {
               Copy-Item -Path $_.FullName -Destination $stagingDir
           }
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            - source: 'files.collected'
+              custom_parser_vals:
+                regex: 'Copied\s+(\d+)\s+files\s+to\s+C:\\Users\\Public\\Loot'
+                edge_label: 'collected_files'

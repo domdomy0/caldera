@@ -1,0 +1,6 @@
+id: op34d2dd-a33a-ajl0-a4l1-phase4
+name: 4_NTDS_Stage_and_Exfiltrate
+description: Adversary profile for thesis ransomware precursor emulation.
+atomic_ordering:
+- 2b3c4d5e-f6g7-8b9c-0d1e-ntds-copy #NTDS Dump on DC
+- 0f2i3d4e-h6g7-4i8j-de4f-exfiltrate-ntds # Exfiltrate NTDS.dit to Staging Directory

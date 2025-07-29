@@ -1,0 +1,9 @@
+id: d76159c1-d78a-4e77-8c5d-phase1
+name: 01_Recon_and_Persistence_User
+description: Adversary profile for thesis ransomware precursor emulation.
+atomic_ordering:
+- 5b3310a2-2a31-4560-a2a3-1951515ea1e4 # System Network Configuration Discovery
+- 4e9b9821-b353-4155-9430-5881023c1043 # Domain Trust Discovery - Domain Controller
+- e6824b53-b21b-4f4a-9e19-482d8a43697e # Enum Domain Users
+- c3b4d5e6-f7a8-49b0-9c1d-ldap-domain-admins # Enum Domain Admins via LDAP
+- 7d2d7e30-1a73-45d5-8a24-943a41c6999a # Persistence Run Key as User

@@ -20,22 +20,27 @@
               $memberObject = $memberSearcher.FindOne();
               $samAccountName = $memberObject.Properties["samaccountname"][0];
               $samAccountNames += $samAccountName;
+              Write-Host "Found DA: $samAccountName";
           };
           $adminAccount = "Administrator";
           $domainAdminAccount = "domainadmin";
           $otherAccountFound = $samAccountNames | Where-Object { $_ -ne $adminAccount -and $_ -ne $domainAdminAccount } | Select-Object -First 1;
           if ($null -ne $otherAccountFound) {
-              Write-Host "Found DA: $otherAccountFound";
+              Write-Host "Found DA_User: $otherAccountFound";
           }
           elseif ($samAccountNames -contains $domainAdminAccount) {
-              Write-Host "Found DA: $domainAdminAccount";
+              Write-Host "Found DA_User: $domainAdminAccount";
           }
           elseif ($samAccountNames -contains $adminAccount) {
-              Write-Host "Found DA: $adminAccount";
+              Write-Host "Found DA_User: $adminAccount";
           };
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
             - source: 'esc1.target_user'
+              custom_parser_vals:
+                regex: 'Found DA_User:\s+(.*)'
+                edge_label: 'is_domain_admin'
+            - source: 'da.admin'
               custom_parser_vals:
                 regex: 'Found DA:\s+(.*)'
                 edge_label: 'is_domain_admin'
