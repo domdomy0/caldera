@@ -13,6 +13,7 @@
           $searcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]$domainPath);
           $searcher.Filter = "(&(objectCategory=group)(name=Domain Admins))";
           $group = $searcher.FindOne();
+          $samAccountNames = @();
           foreach ($member in $group.Properties.member) {
               $memberSearcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]"LDAP://$member");
               $memberSearcher.PropertiesToLoad.Add("sAMAccountName") | Out-Null;
