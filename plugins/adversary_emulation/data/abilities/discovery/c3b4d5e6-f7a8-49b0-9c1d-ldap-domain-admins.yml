@@ -9,7 +9,7 @@
     windows:
       psh:
         command: |
-          $domainPath = "GC://#{host.domain.name}";
+          $domainPath = "GC://#{domain.name}";
           $searcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]$domainPath);
           $searcher.Filter = "(&(objectCategory=group)(name=Domain Admins))";
           $group = $searcher.FindOne();
@@ -18,7 +18,19 @@
               $memberSearcher.PropertiesToLoad.Add("sAMAccountName") | Out-Null;
               $memberObject = $memberSearcher.FindOne();
               $samAccountName = $memberObject.Properties["samaccountname"][0];
-              Write-Host "Found DA: $samAccountName";
+              $samAccountNames += $samAccountName;
+          };
+          $adminAccount = "Administrator";
+          $domainAdminAccount = "domainadmin";
+          $otherAccountFound = $samAccountNames | Where-Object { $_ -ne $adminAccount -and $_ -ne $domainAdminAccount } | Select-Object -First 1;
+          if ($null -ne $otherAccountFound) {
+              Write-Host "Found DA: $otherAccountFound";
+          }
+          elseif ($samAccountNames -contains $domainAdminAccount) {
+              Write-Host "Found DA: $domainAdminAccount";
+          }
+          elseif ($samAccountNames -contains $adminAccount) {
+              Write-Host "Found DA: $adminAccount";
           };
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
