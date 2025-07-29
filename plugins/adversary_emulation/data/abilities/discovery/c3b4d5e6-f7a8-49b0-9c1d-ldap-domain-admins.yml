@@ -1,0 +1,31 @@
+- id: c3b4d5e6-f7a8-49b0-9c1d-ldap-domain-admins
+  name: Discovery - Enumerate Domain Admins via LDAP
+  description: Uses a native PowerShell LDAP query to find members of the 'Domain Admins' group.
+  tactic: discovery
+  technique:
+    attack_id: T1069.002
+    name: "Permission Groups Discovery: Domain Groups"
+  platforms:
+    windows:
+      psh:
+        command: |
+          $domainPath = "GC://#{host.domain.name}"
+          $searcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]$domainPath)
+          $searcher.Filter = "(&(objectCategory=group)(name=Domain Admins))"
+          $group = $searcher.FindOne()
+
+          # Output each member's sAMAccountName
+          foreach ($member in $group.Properties.member) {
+              $memberSearcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]"LDAP://$member")
+              $memberSearcher.PropertiesToLoad.Add("sAMAccountName") | Out-Null
+              $memberObject = $memberSearcher.FindOne()
+              $samAccountName = $memberObject.Properties["samaccountname"][0]
+              Write-Host "Found DA: $samAccountName"
+          }
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            # This parser will find every line starting with "Found DA: " and create a fact.
+            - source: 'esc1.target_user'
+              edge_label: 'is_domain_admin'
+              custom_parser_vals:
+                regex: 'Found DA:\s+(.*)'

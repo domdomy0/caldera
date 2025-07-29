@@ -16,7 +16,11 @@
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
             # Rule 1: Extract the Domain Controller's FQDN from the output.
-            - source: 'host.dc.name'
+            - source: 'domain.controller.hostname'
               custom_parser_vals:
                 regex: '^\s*DC:\s*\\\\(\S+)'
                 edge_label: 'is_a_dc'
+            - source: 'domain.name'
+              custom_parser_vals:
+                regex: '^\s*Dom Name:\s*\\\\(\S+)'
+                edge_label: 'is_domain_name'

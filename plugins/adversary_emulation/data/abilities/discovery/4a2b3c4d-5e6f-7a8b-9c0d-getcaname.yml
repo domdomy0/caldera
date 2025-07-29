@@ -1,0 +1,37 @@
+- id: 4a2b3c4d-5e6f-7a8b-9c0d-getcaname
+  name: Discovery - Find ADCS CA Name
+  description: Uses a native LDAP query to find the Enterprise Certificate Authority server and name.
+  tactic: discovery
+  technique:
+    attack_id: T1649 # Fits under the broader technique
+    name: "Steal or Forge Authentication Certificates"
+  platforms:
+    windows:
+      psh:
+        command: |
+          # Get the Configuration naming context
+          $rootDSE = [ADSI]"LDAP://RootDSE"
+          $configDN = $rootDSE.configurationNamingContext
+          $searchRoot = "LDAP://$configDN"
+
+          # Build the searcher
+          $searcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]$searchRoot)
+          $searcher.Filter = "(objectClass=pkiEnrollmentService)"
+
+          # Run the search
+          $ca = $searcher.FindOne()
+
+          # Output CA info if found
+          if ($ca) {
+              $caName = $ca.Properties["cn"][0]
+              $dnsName = $ca.Properties["dnshostname"][0]
+              Write-Host "Found-CA-Name: $dnsName\$caName"
+          } else {
+              Write-Host "No Enterprise CA found."
+          }
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            - source: 'adcs.ca.name_full'
+              edge_label: 'is_ca_for_domain'
+              custom_parser_vals:
+                regex: 'Found-CA-Name:\s+(.*)'

