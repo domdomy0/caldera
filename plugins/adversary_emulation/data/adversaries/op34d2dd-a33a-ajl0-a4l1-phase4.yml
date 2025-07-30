@@ -7,3 +7,4 @@ atomic_ordering:
 - 2b3c4d5e-f6g7-8b9c-0d1e-ntds-copy         # NTDS Dump on DC
 - a1b2c3d4-e5f6-g7h8-i9j0-consolidate-data  # Collection - Consolidate Staged Data into Archive
 - b2c3d4e5-f6g7-h8i9-j0k1-exfiltrate-data   # Exfiltration - Upload Archive to Cloud Service
+- d2e3f4g5-h6i7-j8k9-l0m1-cleanup-final     # Final Cleanup of Tools and Loot

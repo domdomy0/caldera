@@ -11,7 +11,7 @@
         command: |
           $runKeyPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run";
           $entryName = "OneDriveSync";
-          $command = "C:\Users\Public\splunkd.exe -server #{server} -group #{group}";
+          $command = "#{location} -server #{server} -group #{group}";
           Set-ItemProperty -Path $runKeyPath -Name $entryName -Value $command -Force;
           Get-ItemProperty -Path $runKeyPath -Name $entryName | Format-List -Property $entryName;
         parsers:

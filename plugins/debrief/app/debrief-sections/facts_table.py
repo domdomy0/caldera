@@ -1,4 +1,4 @@
-from reportlab.lib.units import inch0
+from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph
 from reportlab.platypus.flowables import KeepTogetherSplitAtTop
 

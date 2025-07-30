@@ -1,0 +1,33 @@
+- id: d2e3f4g5-h6i7-j8k9-l0m1-cleanup-final
+  name: Defense Evasion - Final Cleanup
+  description: Dynamically cleans all staging directories, loot files, archives, and payloads.
+  tactic: defense-evasion
+  technique:
+    attack_id: T1070.004
+    name: "Indicator Removal on Host: File Deletion"
+  requirements:
+    - plugins.stockpile.app.requirements.existential:
+        - source: env.dir.stage
+        - source: env.dir.loot
+  platforms:
+    windows:
+      psh:
+        command: |
+          $stagingDir = "#{env.dir.stage}";
+          $lootDir = "#{env.dir.loot}";
+          $archivePath = "$stagingDir\ifs_loot.zip";
+          Remove-Item "$stagingDir\Rubeus.exe" -ErrorAction SilentlyContinue;
+          Remove-Item "$stagingDir\Certify.exe" -ErrorAction SilentlyContinue;
+          Remove-Item "$stagingDir\accesschk64.exe" -ErrorAction SilentlyContinue;
+          Remove-Item "$stagingDir\request.inf" -ErrorAction SilentlyContinue;
+          Remove-Item "$stagingDir\request.req" -ErrorAction SilentlyContinue;
+          Remove-Item "$stagingDir\cert.cer" -ErrorAction SilentlyContinue;
+          Remove-Item $archivePath -ErrorAction SilentlyContinue;
+          Remove-Item $lootDir -Recurse -Force -ErrorAction SilentlyContinue;
+          Write-Host "Cleanup-Complete: TRUE";
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            - source: 'attack.cleanup.status'
+              custom_parser_vals:
+                regex: 'Cleanup-Complete:\s+(.*)'
+                edge_label: 'is_complete'

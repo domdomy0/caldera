@@ -1,0 +1,26 @@
+- id: e1f2g3h4-i5j6-k7l8-m9n0-setup-env
+  name: Setup - Initialize Environment Facts
+  description: Creates standard facts for staging and loot directories.
+  tactic: execution
+  technique:
+    attack_id: T1074.001
+    name: "Data Staged"
+  platforms:
+    windows:
+      psh:
+        command: |
+          $stagingDir = "C:\Users\Public"
+          $lootDir = "$stagingDir\Loot"
+          New-Item -Path $lootDir -ItemType Directory -ErrorAction SilentlyContinue
+          Write-Host "Staging-Directory: $stagingDir"
+          Write-Host "Loot-Directory: $lootDir"
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            - source: 'env.dir.stage'
+              custom_parser_vals:
+                regex: 'Staging-Directory:\s+(.*)'
+                edge_label: 'is_staging_dir'
+            - source: 'env.dir.loot'
+              custom_parser_vals:
+                regex: 'Loot-Directory:\s+(.*)'
+                edge_label: 'is_loot_dir'

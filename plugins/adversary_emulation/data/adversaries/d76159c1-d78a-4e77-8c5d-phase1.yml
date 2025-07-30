@@ -1,5 +1,5 @@
 id: d76159c1-d78a-4e77-8c5d-phase1
-name: 01_Recon_and_Persistence_User
+name: 1_Recon_and_Persistence_User
 description: Adversary profile for thesis ransomware precursor emulation.
 atomic_ordering:
 - 5b3310a2-2a31-4560-a2a3-1951515ea1e4 # System Network Configuration Discovery

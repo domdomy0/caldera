@@ -13,10 +13,10 @@
     windows:
       psh:
         command: |
-          $stagingDir = "C:\Users\Public\Loot";
-          $archivePath = "C:\Users\Public\ifs_loot.zip";
-          if (Test-Path "$stagingDir\*") {
-              Compress-Archive -Path "$stagingDir\*" -DestinationPath $archivePath -Force;
+          $lootDir = "#{env.dir.loot}";
+          $archivePath = "#{env.dir.stage}\ifs_loot.zip";
+          if (Test-Path "$lootDir\*") {
+              Compress-Archive -Path "$lootDir\*" -DestinationPath $archivePath -Force;
           };
           if (Test-Path $archivePath) {
               Write-Host "Archive-Created: $archivePath";

@@ -10,7 +10,7 @@
     windows:
       psh:
         command: |
-          $agentExe = "C:\Users\Public\splunkd.exe";
+          $agentExe = "#{location}";
           $agentArgs = "-server #{server} -group #{group}";
           $action = New-ScheduledTaskAction -Execute $agentExe -Argument $agentArgs;
           $trigger = New-ScheduledTaskTrigger -AtStartup;

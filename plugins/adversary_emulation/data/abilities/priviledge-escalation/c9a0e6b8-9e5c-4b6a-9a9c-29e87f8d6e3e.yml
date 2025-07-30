@@ -12,7 +12,7 @@
     windows:
       psh:
         command: |
-          $payloadDirectory = "C:\Users\Public";
+          $payloadDirectory = "#{env.dir.stage}";
           $csFilePath = Join-Path -Path $payloadDirectory -ChildPath "svc-launcher.cs";
           $exeFilePath = Join-Path -Path $payloadDirectory -ChildPath "svc-launcher.exe";
           $csharpLines = @(

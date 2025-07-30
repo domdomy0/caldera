@@ -13,7 +13,7 @@
     windows:
       psh:
         command: |
-          cd "C:\Users\Public";
+          cd "#{env.dir.stage}";
           $shortname = "#{esc1.target_user}";
           $upn = "$shortname@#{domain.name}";
           $template = "#{esc1.template}";
