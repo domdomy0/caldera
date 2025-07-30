@@ -19,6 +19,7 @@ from app.service.auth_svc import for_all_public_methods, check_authorization
 from app.utility.base_world import BaseWorld
 from plugins.debrief.app.debrief_svc import DebriefService
 from plugins.debrief.app.objects.c_story import Story
+from plugins.debrief.app.svg_generator import SVGGenerator
 
 
 @for_all_public_methods(check_authorization)
@@ -39,6 +40,7 @@ class DebriefGui(BaseWorld):
         self.loaded_report_sections = False
 
         rl_settings.trustedHosts = BaseWorld.get_config(prop='reportlab_trusted_hosts', name='debrief') or None
+        self.svg_generator = SVGGenerator()
 
     async def _get_access(self, request):
         return dict(access=tuple(await self.auth_svc.get_permissions(request)))
@@ -107,6 +109,43 @@ class DebriefGui(BaseWorld):
             pdf_bytes = await self._build_pdf(operations, agents, filename, data['report-sections'], header_logo_path)
             self._clean_downloads()
             return web.json_response(dict(filename=filename, pdf_bytes=pdf_bytes))
+        return web.json_response('No operations selected')
+
+    async def download_pdf_v2(self, request):
+        """Enhanced PDF generation using server-side SVG generation"""
+        data = dict(await request.json())
+        
+        if not data['operations']:
+            return web.json_response('No operations selected')
+        
+        # Generate SVGs server-side
+        svg_data = {}
+        graph_types = ['steps', 'attackpath', 'fact', 'tactic', 'technique']
+        
+        for graph_type in graph_types:
+            try:
+                graph_data = await getattr(self.debrief_svc, f'build_{graph_type}_d3')(data['operations'])
+                svg_content = self.svg_generator.generate_svg(graph_data, graph_type)
+                svg_data[graph_type] = base64.b64encode(svg_content.encode('utf-8')).decode('utf-8')
+            except Exception as e:
+                self.log.error(f"Failed to generate {graph_type} SVG: {e}")
+        
+        # Save SVGs and generate PDF
+        self._save_svgs(svg_data)
+        
+        if data['operations']:
+            header_logo_path = None
+            header_logo_filename = data.get('header-logo')
+            if header_logo_filename:
+                header_logo_path = os.path.relpath(os.path.join(self.uploads_dir, 'header-logos', header_logo_filename))
+            operations = [o for o in await self.data_svc.locate('operations', match=await self._get_access(request))
+                          if str(o.id) in data.get('operations')]
+            filename = 'debrief_' + datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
+            agents = await self.data_svc.locate('agents')
+            pdf_bytes = await self._build_pdf(operations, agents, filename, data['report-sections'], header_logo_path)
+            self._clean_downloads()
+            return web.json_response(dict(filename=filename, pdf_bytes=pdf_bytes))
+        
         return web.json_response('No operations selected')
 
     async def download_json(self, request):
@@ -233,3 +272,40 @@ class DebriefGui(BaseWorld):
     def _suppress_logs(library):
         lib = logging.getLogger(library)
         lib.setLevel(logging.INFO)
+
+    async def generate_svg(self, request):
+        """Generate SVG from D3.js graph data server-side"""
+        try:
+            data = dict(await request.json())
+            graph_type = data.get('type')
+            operation_ids = data.get('operations', [])
+            
+            # Get the graph data using existing service methods
+            graphs = {
+                'steps': self.debrief_svc.build_steps_d3,
+                'attackpath': self.debrief_svc.build_attackpath_d3,
+                'fact': self.debrief_svc.build_fact_d3,
+                'tactic': self.debrief_svc.build_tactic_d3,
+                'technique': self.debrief_svc.build_technique_d3
+            }
+            
+            if graph_type not in graphs:
+                return web.json_response({'error': 'Invalid graph type'}, status=400)
+                
+            graph_data = await graphs[graph_type](operation_ids)
+            
+            # Generate SVG from graph data
+            svg_generator = SVGGenerator()
+            svg_content = svg_generator.generate_svg(graph_data, graph_type)
+            
+            # Encode to base64
+            svg_b64 = base64.b64encode(svg_content.encode('utf-8')).decode('utf-8')
+            
+            return web.json_response({
+                'svg': svg_b64,
+                'type': graph_type
+            })
+            
+        except Exception as e:
+            self.log.error(repr(e), exc_info=True)
+            return web.json_response({'error': str(e)}, status=500)

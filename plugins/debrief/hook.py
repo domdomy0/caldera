@@ -17,6 +17,8 @@ async def enable(services):
     app.router.add_route('POST', '/plugin/debrief/report', debrief_gui.report)
     app.router.add_route('*', '/plugin/debrief/graph', debrief_gui.graph)
     app.router.add_route('POST', '/plugin/debrief/pdf', debrief_gui.download_pdf)
+    app.router.add_route('POST', '/plugin/debrief/pdf/v2', debrief_gui.download_pdf_v2)
+    app.router.add_route('POST', '/plugin/debrief/svg', debrief_gui.generate_svg)
     app.router.add_route('POST', '/plugin/debrief/json', debrief_gui.download_json)
     app.router.add_route('GET', '/plugin/debrief/logos', debrief_gui.all_logos)
     app.router.add_route('GET', '/plugin/debrief/sections', debrief_gui.report_sections)
