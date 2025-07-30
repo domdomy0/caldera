@@ -21,7 +21,10 @@
           Remove-Item "$stagingDir\accesschk64.exe" -ErrorAction SilentlyContinue;
           Remove-Item "$stagingDir\request.inf" -ErrorAction SilentlyContinue;
           Remove-Item "$stagingDir\request.req" -ErrorAction SilentlyContinue;
+          Remove-Item "$stagingDir\cert.rsp" -ErrorAction SilentlyContinue;
           Remove-Item "$stagingDir\cert.cer" -ErrorAction SilentlyContinue;
+          Remove-Item "$stagingDir\svc-launcher.cs" -ErrorAction SilentlyContinue;
+          Remove-Item "$stagingDir\svc-launcher.exe" -ErrorAction SilentlyContinue;
           Remove-Item $archivePath -ErrorAction SilentlyContinue;
           Remove-Item $lootDir -Recurse -Force -ErrorAction SilentlyContinue;
           Write-Host "Cleanup-Complete: TRUE";

@@ -2,6 +2,7 @@ id: 0a4f32d3-a4b5-6c7d-8e9f-full-emu
 name: 0_Full_Emulation_Plan
 description: Adversary profile for thesis ransomware precursor emulation.
 atomic_ordering:
+- e1f2g3h4-i5j6-k7l8-m9n0-setup-env         # Setup - Set Stage and Loot Directories
 - 5b3310a2-2a31-4560-a2a3-1951515ea1e4      # System Network Configuration Discovery
 - 4e9b9821-b353-4155-9430-5881023c1043      # Domain Trust Discovery - Domain Controller
 - e6824b53-b21b-4f4a-9e19-482d8a43697e      # Enum Domain Users
@@ -16,6 +17,7 @@ atomic_ordering:
 - 81250e3d-bafd-41ef-b7de-certreq-esc1      # CertReq to get TGT for DA
 - ae1831b1-b435-4864-ae7f-rubeus-asktgt     # Rubeus AskTGT for DA
 - 5b6c7d8e-9f0a-1b2c-3d4e-verifydarights    # Verify Domain Admin Rights
+- e3a1b4c2-d5e6-4f7a-8b9c-DC-sched          # Persistence - Create and Start Privileged Task on DC
 - 7d8e9f0a-1b2c-3d4e-5f6g-collectfiles      # Collection - Search and Stage Sensitive Files
 - 1a2b3c4d-e5f6-7a8b-9c0d-ntds-dump         # Collection - Remotely Dump NTDS via ntdsutil
 - 2b3c4d5e-f6g7-8b9c-0d1e-ntds-copy         # NTDS Dump on DC

