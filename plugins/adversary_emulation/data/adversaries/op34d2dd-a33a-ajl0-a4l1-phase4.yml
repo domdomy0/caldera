@@ -3,7 +3,7 @@ name: 4_NTDS_Stage_and_Exfiltrate
 description: Adversary profile for thesis ransomware precursor emulation.
 atomic_ordering:
 - 7d8e9f0a-1b2c-3d4e-5f6g-collectfiles      # Collection - Search and Stage Sensitive Files
+- 1a2b3c4d-e5f6-7a8b-9c0d-ntds-dump         # Collection - Remotely Dump NTDS via ntdsutil
 - 2b3c4d5e-f6g7-8b9c-0d1e-ntds-copy         # NTDS Dump on DC
-- 0f2i3d4e-h6g7-4i8j-de4f-exfiltrate-ntds   # Exfiltrate NTDS.dit to Staging Directory
 - a1b2c3d4-e5f6-g7h8-i9j0-consolidate-data  # Collection - Consolidate Staged Data into Archive
 - b2c3d4e5-f6g7-h8i9-j0k1-exfiltrate-data   # Exfiltration - Upload Archive to Cloud Service

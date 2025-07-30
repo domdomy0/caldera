@@ -13,7 +13,7 @@
     windows:
       psh:
         command: |
-          ccd "C:\Users\Public";
+          cd "C:\Users\Public";
           $shortname = "#{esc1.target_user}";
           $upn = "$shortname@#{domain.name}";
           $template = "#{esc1.template}";

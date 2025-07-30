@@ -27,7 +27,6 @@
           }
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
-            # The command now produces a clean list of one username per line. The parser can be extremely simple.
-            - source: 'user.name'
+            - source: 'domain.user.name'
               custom_parser_vals:
                 regex: '^(.*)$'
