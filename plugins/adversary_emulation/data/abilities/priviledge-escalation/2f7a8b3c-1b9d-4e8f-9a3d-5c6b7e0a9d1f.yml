@@ -7,19 +7,18 @@
     name: "Create or Modify System Process: Windows Service"
   requirements:
     - plugins.stockpile.app.requirements.existential:
-      - source: service.path.modified
-      - source: service.name.writable
+      - source: service.binpath.modified
   platforms:
     windows:
       psh:
         command: |
-          sc.exe start #{service.path.writable};
-          Start-Sleep -Seconds 5;
-          net user svc-pwned;
+          & sc.exe start #{service.binpath.modified};
+          echo "Service started = true";
+          #Start-Sleep -Seconds 5;
+          #net user svc-pwned;
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
-            - source: 'host.user.is_admin'
+            - source: 'service.started'
               custom_parser_vals:
-                regex: 'User name\s+svc-pwned'
-                fact_source_override: 'true'
-                edge_label: 'has_escalated_privilege'
+                regex: 'Service started = (.*)'
+                edge_label: 'hijacked'

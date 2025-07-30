@@ -16,11 +16,13 @@
           $trigger = New-ScheduledTaskTrigger -AtStartup;
           $principal = New-ScheduledTaskPrincipal -UserId "NT AUTHORITY\SYSTEM";
           $taskName = "OneDriveSyncc";
-          Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Force;
-          Write-Host "SUCCESS: '$($taskName)'";
+          $status = Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Force;
+          if ($status.State -eq "Ready") {
+            Write-Host "ScheduledTask created successfully: $($status.TaskName)";
+          }
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
-            - source: 'host.persistence.privileged_task'
+            - source: 'host.persistence.privileged'
               custom_parser_vals:
-                regex: "SUCCESS: '(.+)'"
-                edge_label: 'has_persistence_method'
+                regex: 'ScheduledTask created successfully: (.+)'
+                edge_label: 'system_persistence'

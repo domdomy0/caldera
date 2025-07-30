@@ -1,0 +1,31 @@
+- id: a1b2c3d4-e5f6-g7h8-i9j0-consolidate-data
+  name: Collection - Consolidate Staged Data into Archive
+  description: Uses native PowerShell to compress all files in the loot directory into a single ZIP archive for exfiltration.
+  tactic: collection
+  technique:
+    attack_id: T1560.001
+    name: "Archive Collected Data: Archive via Utility"
+  requirements:
+    - plugins.stockpile.app.requirements.existential:
+        - source: domain.admin.pwned
+        - source: file.ntds.exfiltrated_path
+  platforms:
+    windows:
+      psh:
+        command: |
+          $stagingDir = "C:\Users\Public\Loot";
+          $archivePath = "C:\Users\Public\ifs_loot.zip";
+          if (Test-Path "$stagingDir\*") {
+              Compress-Archive -Path "$stagingDir\*" -DestinationPath $archivePath -Force;
+          };
+          if (Test-Path $archivePath) {
+              Write-Host "Archive-Created: $archivePath";
+          } else {
+              Write-Error "[FAILURE] Staging directory was empty or compression failed.";
+          };
+        parsers:
+          plugins.adversary_emulation.app.parsers.regex_parser:
+            - source: 'file.archive.path'
+              custom_parser_vals:
+                regex: 'Archive-Created:\s+(.*)'
+                edge_label: 'is_staged_for_exfil'

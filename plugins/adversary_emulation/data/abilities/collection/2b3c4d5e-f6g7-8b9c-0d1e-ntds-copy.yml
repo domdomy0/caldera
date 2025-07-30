@@ -8,7 +8,7 @@
   requirements:
     - plugins.stockpile.app.requirements.existential:
         - source: file.ntds.staged_path_remote
-        - source: domain.user.impersonated
+        - source: domain.admin.pwned
         - source: domain.controller.hostname
   platforms:
     windows:

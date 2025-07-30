@@ -8,6 +8,7 @@
   requirements:
     - plugins.stockpile.app.requirements.existential:
         - source: domain.controller.hostname
+        - source: da.impersonated
   platforms:
     windows:
       psh:
@@ -15,13 +16,13 @@
           $dc = "#{domain.controller.hostname}";
           try {
               $null = ls \\$dc\c$ -ErrorAction Stop;
-              Write-Host "Domain-Admin-Access-Confirmed: TRUE";
+              Write-Host "Domain-Admin-Access: TRUE";
           } catch {
-              Write-Host "Domain-Admin-Access-Confirmed: FALSE";
+              Write-Host "FALSE";
           };
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
             - source: 'domain.admin.pwned'
               custom_parser_vals:
-                regex: 'Domain-Admin-Access-Confirmed:\s+TRUE'
+                regex: 'Domain-Admin-Access:\s+(.*)'
                 edge_label: 'is_pwned'

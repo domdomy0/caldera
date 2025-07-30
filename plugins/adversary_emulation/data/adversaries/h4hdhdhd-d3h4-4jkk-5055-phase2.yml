@@ -1,7 +1,8 @@
-id: op34d2dd-a33a-ajl0-a4l1-phase4
+id: h4hdhdhd-d3h4-4jkk-5055-phase2
 name: 2_Privilege_Escalation
 description: Adversary profile for thesis ransomware precursor emulation.
 atomic_ordering:
 - 8a48e4a9-e41c-433b-a67b-11756a93b45a # Discovery - Find Writable Services
-- 
+- f0c1d2e3-a4b5-4c6d-8e7f-9a0b1c2d3e4f # Privilege Escalation - Service binPath Hijack via Custom C# Launcher
+- 2f7a8b3c-1b9d-4e8f-9a3d-5c6b7e0a9d1f # Privilege Escalation - Start Service
 - e3a1b4c2-d5e6-4f7a-8b9c-0d1e2f3a4b5c # Persistence - Privileged Scheduled Task (On Startup)

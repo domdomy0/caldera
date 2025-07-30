@@ -14,7 +14,6 @@
           .\accesschk64.exe -accepteula -uwcqv "Authenticated Users" * | Out-String | Select-String "RW"
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
-            # This regex is designed to find lines containing 'RW' and capture the service name at the beginning.
             - source: 'service.name.writable'
               custom_parser_vals:
                 regex: '^RW\s+(\S+)'
