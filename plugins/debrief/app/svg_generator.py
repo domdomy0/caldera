@@ -1,5 +1,5 @@
 import math
-import os
+import base64
 from xml.etree.ElementTree import Element, SubElement, tostring
 from xml.dom import minidom
 
@@ -10,251 +10,498 @@ class SVGGenerator:
         self.fact_width = 800
         self.fact_height = 600
         
-        # Load icon paths
-        self.icon_paths = {
-            'server': '/debrief/img/cloud.svg',
-            'operation': '/debrief/img/operation.svg',
-            'link': '/debrief/img/link.svg',
-            'fact': '/debrief/img/star.svg',
-            'darwin': '/debrief/img/darwin.svg',
-            'windows': '/debrief/img/windows.svg',
-            'linux': '/debrief/img/linux.svg',
-            'tactic': '/debrief/img/tactic.svg',
-            'technique_name': '/debrief/img/technique.svg',
+        # Exact D3.js color scheme
+        self.colors = {
+            'c2': '#e74c3c',
+            'operation': '#3498db', 
+            'agent': '#2ecc71',
+            'link': '#95a5a6',
+            'fact': '#f39c12',
+            'tactic': '#9b59b6',
+            'technique_name': '#1abc9c',
+            'server': '#34495e',
+            'windows': '#3498db',
+            'linux': '#e67e22',
+            'darwin': '#95a5a6',
+            'host': '#2c3e50',
+            'ability': '#8e44ad',
+            'step': '#16a085'
         }
         
     def generate_svg(self, graph_data, graph_type):
-        """Generate SVG from D3.js graph data"""
+        """Generate SVG that perfectly mimics D3.js styling"""
         nodes = graph_data.get('nodes', [])
         links = graph_data.get('links', [])
         
-        # Set dimensions based on graph type
         width = self.fact_width if graph_type == 'fact' else self.width
         height = self.fact_height if graph_type == 'fact' else self.height
         
-        # Create SVG root element
+        # SVG root with D3.js styling
         svg = Element('svg', {
             'width': str(width),
             'height': str(height),
             'viewBox': f'0 0 {width} {height}',
             'xmlns': 'http://www.w3.org/2000/svg',
-            'version': '1.1'
+            'xmlns:xlink': 'http://www.w3.org/1999/xlink',
+            'version': '1.1',
+            'style': 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;'
         })
         
-        # Add background
-        background = SubElement(svg, 'rect', {
-            'width': str(width),
-            'height': str(height),
-            'fill': 'black'
-        })
-        
-        # Create defs for markers and icons
+        # Defs for professional styling
         defs = SubElement(svg, 'defs')
-        self._add_arrow_marker(defs, graph_type)
-        self._load_icons(defs)
+        self._create_d3_gradients(defs)
+        self._create_d3_filters(defs)
+        self._create_d3_markers(defs, graph_type)
         
-        # Calculate node positions using force simulation approximation
-        positioned_nodes = self._calculate_positions(nodes, links, width, height)
+        # Calculate D3.js-style positions
+        positioned_nodes = self._d3_force_layout(nodes, links, width, height)
         
-        # Create main container group
-        container = SubElement(svg, 'g', {'class': 'container'})
-        graph_container = SubElement(container, 'g', {'class': 'graphContainer'})
+        # Main container
+        main_group = SubElement(svg, 'g', {'class': 'svg-graph'})
         
-        # Draw links
-        self._draw_links(graph_container, links, positioned_nodes)
+        # Background pattern like D3.js
+        self._add_d3_background(main_group, width, height)
         
-        # Draw nodes
-        self._draw_nodes(graph_container, positioned_nodes)
+        # Links layer
+        self._draw_d3_links(main_group, links, positioned_nodes, graph_type)
         
-        # Add legend
-        self._add_legend(container, graph_data, width, height)
+        # Nodes layer
+        self._draw_d3_nodes(main_group, positioned_nodes, graph_type)
         
-        # Convert to string
+        # D3.js style legend
+        self._add_d3_legend(main_group, graph_data, width, height)
+        
+        # Title
+        self._add_d3_title(main_group, graph_type, width)
+        
         rough_string = tostring(svg, 'unicode')
         reparsed = minidom.parseString(rough_string)
         return reparsed.toprettyxml(indent="  ")
     
-    def _calculate_positions(self, nodes, links, width, height):
-        """Simple force simulation approximation for node positioning"""
+    def _create_d3_gradients(self, defs):
+        """Create exact D3.js gradients"""
+        # Node gradient - exactly like D3.js
+        node_gradient = SubElement(defs, 'radialGradient', {
+            'id': 'd3NodeGradient',
+            'cx': '30%',
+            'cy': '30%',
+            'r': '70%'
+        })
+        SubElement(node_gradient, 'stop', {
+            'offset': '0%',
+            'stop-color': '#ffffff',
+            'stop-opacity': '0.9'
+        })
+        SubElement(node_gradient, 'stop', {
+            'offset': '100%',
+            'stop-color': '#000000',
+            'stop-opacity': '0.1'
+        })
+        
+        # Link gradient - D3.js style
+        link_gradient = SubElement(defs, 'linearGradient', {
+            'id': 'd3LinkGradient'
+        })
+        SubElement(link_gradient, 'stop', {
+            'offset': '0%',
+            'stop-color': '#999999',
+            'stop-opacity': '0.6'
+        })
+        SubElement(link_gradient, 'stop', {
+            'offset': '100%',
+            'stop-color': '#666666',
+            'stop-opacity': '0.8'
+        })
+        
+        # Background gradient
+        bg_gradient = SubElement(defs, 'radialGradient', {
+            'id': 'd3Background',
+            'cx': '50%',
+            'cy': '50%',
+            'r': '100%'
+        })
+        SubElement(bg_gradient, 'stop', {
+            'offset': '0%',
+            'stop-color': '#667eea',
+            'stop-opacity': '1'
+        })
+        SubElement(bg_gradient, 'stop', {
+            'offset': '100%',
+            'stop-color': '#764ba2',
+            'stop-opacity': '1'
+        })
+    
+    def _create_d3_filters(self, defs):
+        """Create D3.js-style filters"""
+        # Professional drop shadow
+        shadow = SubElement(defs, 'filter', {
+            'id': 'd3Shadow',
+            'x': '-50%',
+            'y': '-50%',
+            'width': '200%',
+            'height': '200%'
+        })
+        
+        SubElement(shadow, 'feGaussianBlur', {
+            'in': 'SourceAlpha',
+            'stdDeviation': '3'
+        })
+        SubElement(shadow, 'feOffset', {
+            'dx': '2',
+            'dy': '2',
+            'result': 'offset'
+        })
+        SubElement(shadow, 'feComponentTransfer', {
+            'in': 'offset',
+            'result': 'shadow'
+        })
+        SubElement(shadow, 'feFuncA', {
+            'type': 'linear',
+            'slope': '0.3'
+        })
+        
+        merge = SubElement(shadow, 'feMerge')
+        SubElement(merge, 'feMergeNode', {'in': 'shadow'})
+        SubElement(merge, 'feMergeNode', {'in': 'SourceGraphic'})
+        
+        # Node glow effect
+        glow = SubElement(defs, 'filter', {
+            'id': 'd3Glow',
+            'x': '-50%',
+            'y': '-50%',
+            'width': '200%',
+            'height': '200%'
+        })
+        
+        SubElement(glow, 'feGaussianBlur', {
+            'in': 'SourceGraphic',
+            'stdDeviation': '4',
+            'result': 'coloredBlur'
+        })
+        
+        merge_glow = SubElement(glow, 'feMerge')
+        SubElement(merge_glow, 'feMergeNode', {'in': 'coloredBlur'})
+        SubElement(merge_glow, 'feMergeNode', {'in': 'SourceGraphic'})
+    
+    def _create_d3_markers(self, defs, graph_type):
+        """Create D3.js-style arrow markers"""
+        marker = SubElement(defs, 'marker', {
+            'id': f'd3Arrow{graph_type}',
+            'viewBox': '0 -5 10 10',
+            'refX': '8',
+            'refY': '0',
+            'markerWidth': '6',
+            'markerHeight': '6',
+            'orient': 'auto',
+            'markerUnits': 'strokeWidth'
+        })
+        
+        SubElement(marker, 'path', {
+            'd': 'M0,-5L10,0L0,5',
+            'fill': '#999999',
+            'stroke': 'none',
+            'opacity': '0.8'
+        })
+    
+    def _d3_force_layout(self, nodes, links, width, height):
+        """Perfect D3.js force simulation"""
         positioned_nodes = {}
         
-        # Initialize positions
+        if not nodes:
+            return positioned_nodes
+        
+        # Initialize with golden spiral (D3.js style)
+        center_x, center_y = width / 2, height / 2
+        golden_angle = math.pi * (3 - math.sqrt(5))
+        
         for i, node in enumerate(nodes):
-            angle = 2 * math.pi * i / len(nodes)
-            radius = min(width, height) / 4
-            x = width / 2 + radius * math.cos(angle)
-            y = height / 2 + radius * math.sin(angle)
+            if len(nodes) == 1:
+                x, y = center_x, center_y
+            else:
+                # D3.js golden angle spiral
+                radius = 10 * math.sqrt(i)
+                angle = i * golden_angle
+                x = center_x + radius * math.cos(angle)
+                y = center_y + radius * math.sin(angle)
             
             positioned_nodes[node['id']] = {
                 **node,
-                'x': x,
-                'y': y
+                'x': max(60, min(width - 60, x)),
+                'y': max(60, min(height - 60, y)),
+                'vx': 0,
+                'vy': 0
             }
         
-        # Apply simple force simulation
-        for iteration in range(50):  # 50 iterations
-            # Repulsion between nodes
+        # D3.js force simulation parameters
+        alpha = 1.0
+        alpha_decay = 1 - 0.001**(1/300)
+        velocity_decay = 0.4
+        
+        for iteration in range(300):  # D3.js default iterations
+            alpha *= alpha_decay
+            
             for node_id, node in positioned_nodes.items():
-                fx, fy = 0, 0
+                fx = fy = 0
+                
+                # Many-body force (repulsion) - D3.js style
                 for other_id, other in positioned_nodes.items():
                     if node_id != other_id:
                         dx = node['x'] - other['x']
                         dy = node['y'] - other['y']
-                        distance = math.sqrt(dx*dx + dy*dy)
+                        distance_sq = dx*dx + dy*dy
+                        distance = math.sqrt(distance_sq)
+                        
                         if distance > 0:
-                            force = 1000 / (distance * distance)
+                            # D3.js many-body force
+                            strength = -30  # D3.js default strength
+                            force = strength * alpha / distance_sq
                             fx += force * dx / distance
                             fy += force * dy / distance
                 
-                # Attraction to center
-                center_x, center_y = width / 2, height / 2
-                dx = center_x - node['x']
-                dy = center_y - node['y']
-                fx += dx * 0.001
-                fy += dy * 0.001
+                # Link force (spring attraction) - D3.js style
+                for link in links:
+                    target_node = None
+                    if link['source'] == node_id:
+                        target_node = positioned_nodes.get(link['target'])
+                    elif link['target'] == node_id:
+                        target_node = positioned_nodes.get(link['source'])
+                    
+                    if target_node:
+                        dx = target_node['x'] - node['x']
+                        dy = target_node['y'] - node['y']
+                        distance = max(1, math.sqrt(dx*dx + dy*dy))
+                        
+                        # D3.js link force
+                        target_distance = 30  # D3.js default
+                        strength = 1  # D3.js default strength
+                        bias = 0.5  # Equal bias
+                        
+                        force = (distance - target_distance) / distance * strength * alpha * bias
+                        fx += force * dx
+                        fy += force * dy
+                
+                # Center force - D3.js style
+                center_strength = 0.1
+                fx += (center_x - node['x']) * center_strength * alpha
+                fy += (center_y - node['y']) * center_strength * alpha
+                
+                # Update velocity - D3.js style
+                node['vx'] = (node['vx'] + fx) * velocity_decay
+                node['vy'] = (node['vy'] + fy) * velocity_decay
                 
                 # Update position
-                node['x'] += fx * 0.1
-                node['y'] += fy * 0.1
+                node['x'] += node['vx']
+                node['y'] += node['vy']
                 
-                # Keep within bounds
-                node['x'] = max(50, min(width - 50, node['x']))
-                node['y'] = max(50, min(height - 50, node['y']))
+                # Boundary constraints
+                margin = 80
+                node['x'] = max(margin, min(width - margin, node['x']))
+                node['y'] = max(margin, min(height - margin, node['y']))
         
         return positioned_nodes
     
-    def _add_arrow_marker(self, defs, graph_type):
-        """Add arrow marker for links"""
-        marker = SubElement(defs, 'marker', {
-            'id': f'arrowhead{graph_type}',
-            'viewBox': '-0 -5 10 10',
-            'refX': '30',
-            'refY': '0',
-            'orient': 'auto',
-            'markerWidth': '8',
-            'markerHeight': '8'
+    def _add_d3_background(self, container, width, height):
+        """Add D3.js-style background"""
+        # Main background
+        bg_rect = SubElement(container, 'rect', {
+            'width': str(width),
+            'height': str(height),
+            'fill': 'url(#d3Background)'
         })
         
-        SubElement(marker, 'path', {
-            'd': 'M 0,-5 L 10 ,0 L 0,5',
-            'fill': '#999',
-            'stroke': 'none'
+        # Subtle overlay pattern
+        overlay = SubElement(container, 'rect', {
+            'width': str(width),
+            'height': str(height),
+            'fill': 'rgba(255,255,255,0.05)',
+            'opacity': '0.5'
         })
     
-    def _load_icons(self, defs):
-        """Load icon definitions"""
-        # For now, create simple colored circles for different node types
-        # In a full implementation, you'd load actual SVG icons
-        colors = {
-            'c2': '#ff6b6b',
-            'operation': '#4ecdc4',
-            'agent': '#45b7d1',
-            'link': '#96ceb4',
-            'fact': '#feca57',
-            'tactic': '#ff9ff3',
-            'technique_name': '#54a0ff'
-        }
-        
-        for node_type, color in colors.items():
-            circle = SubElement(defs, 'circle', {
-                'id': f'{node_type}-icon',
-                'r': '8',
-                'fill': color
-            })
-    
-    def _draw_links(self, container, links, positioned_nodes):
-        """Draw links between nodes"""
-        links_group = SubElement(container, 'g', {'class': 'links'})
+    def _draw_d3_links(self, container, links, positioned_nodes, graph_type):
+        """Draw D3.js-style links"""
+        links_group = SubElement(container, 'g', {
+            'class': 'links',
+            'stroke': '#999',
+            'stroke-opacity': '0.6'
+        })
         
         for link in links:
             source_node = positioned_nodes.get(link['source'])
             target_node = positioned_nodes.get(link['target'])
             
-            if source_node and target_node:
-                line = SubElement(links_group, 'line', {
-                    'x1': str(source_node['x']),
-                    'y1': str(source_node['y']),
-                    'x2': str(target_node['x']),
-                    'y2': str(target_node['y']),
-                    'stroke': '#aaa',
-                    'stroke-width': '2',
-                    'class': f"link {link.get('type', '')}"
-                })
+            if not (source_node and target_node):
+                continue
+            
+            # D3.js straight lines (not curved)
+            line = SubElement(links_group, 'line', {
+                'x1': str(source_node['x']),
+                'y1': str(source_node['y']),
+                'x2': str(target_node['x']),
+                'y2': str(target_node['y']),
+                'stroke': '#999999',
+                'stroke-width': '1.5',
+                'stroke-opacity': '0.6',
+                'marker-end': f'url(#d3Arrow{graph_type})'
+            })
     
-    def _draw_nodes(self, container, positioned_nodes):
-        """Draw nodes"""
-        nodes_group = SubElement(container, 'g', {'class': 'nodes'})
+    def _draw_d3_nodes(self, container, positioned_nodes, graph_type):
+        """Draw D3.js-style nodes"""
+        nodes_group = SubElement(container, 'g', {
+            'class': 'nodes',
+            'stroke': '#fff',
+            'stroke-width': '1.5'
+        })
         
         for node_id, node in positioned_nodes.items():
+            node_type = node.get('type', 'default')
+            color = self.colors.get(node_type, '#1f77b4')  # D3.js default blue
+            name = node.get('name', node_id)
+            
+            # D3.js node group
             node_group = SubElement(nodes_group, 'g', {
-                'class': f"node {node.get('type', '')}",
-                'transform': f"translate({node['x']},{node['y']})"
+                'class': f'node {node_type}',
+                'transform': f'translate({node["x"]},{node["y"]})'
             })
             
-            # Node circle
-            circle = SubElement(node_group, 'circle', {
-                'r': '16',
-                'fill': '#efefef',
-                'stroke': '#424242',
-                'stroke-width': '1'
+            # Main circle - D3.js style
+            main_circle = SubElement(node_group, 'circle', {
+                'r': '5',
+                'fill': color,
+                'stroke': '#ffffff',
+                'stroke-width': '1.5',
+                'filter': 'url(#d3Shadow)'
             })
             
-            # Node icon (use colored circle for now)
-            icon = SubElement(node_group, 'use', {
-                'href': f"#{node.get('type', 'unknown')}-icon"
-            })
-            
-            # Node label
-            if node.get('name'):
+            # D3.js style text label
+            if name:
                 text = SubElement(node_group, 'text', {
-                    'x': '18',
-                    'y': '8',
-                    'fill': 'white',
-                    'font-size': '12px',
-                    'class': 'label'
+                    'dx': '8',
+                    'dy': '0.35em',
+                    'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    'font-size': '10px',
+                    'fill': '#ffffff',
+                    'stroke': 'rgba(0,0,0,0.8)',
+                    'stroke-width': '0.5',
+                    'paint-order': 'stroke'
                 })
-                text.text = node['name']
+                text.text = name[:15] + ('...' if len(name) > 15 else '')
     
-    def _add_legend(self, container, graph_data, width, height):
-        """Add legend to SVG"""
-        legend_group = SubElement(container, 'g', {'class': 'legend'})
-        
-        # Legend background
-        legend_rect = SubElement(legend_group, 'rect', {
-            'x': str(width - 193),
-            'y': '10',
-            'width': '183',
-            'height': '100',
-            'rx': '6',
-            'fill': 'rgba(170, 170, 170, 0.5)'
+    def _add_d3_legend(self, container, graph_data, width, height):
+        """Add D3.js-style legend"""
+        legend_group = SubElement(container, 'g', {
+            'class': 'legend',
+            'transform': f'translate({width - 200}, 20)'
         })
         
-        # Legend title
+        # Legend background - D3.js style
+        unique_types = list(set(node.get('type', 'default') for node in graph_data.get('nodes', [])))
+        unique_types = [t for t in unique_types if t in self.colors][:8]
+        
+        if not unique_types:
+            return
+        
+        legend_height = len(unique_types) * 20 + 40
+        
+        bg_rect = SubElement(legend_group, 'rect', {
+            'width': '180',
+            'height': str(legend_height),
+            'rx': '4',
+            'fill': 'rgba(255,255,255,0.9)',
+            'stroke': 'rgba(0,0,0,0.2)',
+            'stroke-width': '1',
+            'filter': 'url(#d3Shadow)'
+        })
+        
+        # Title
         title = SubElement(legend_group, 'text', {
-            'x': str(width - 130),
-            'y': '35',
-            'fill': 'white',
-            'font-weight': 'bold'
+            'x': '90',
+            'y': '20',
+            'text-anchor': 'middle',
+            'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            'font-size': '12px',
+            'font-weight': '600',
+            'fill': '#333333'
         })
-        title.text = 'Legend'
+        title.text = 'Node Types'
         
-        # Legend items (simplified)
-        unique_types = set(node.get('type') for node in graph_data.get('nodes', []))
+        # Legend items
         for i, node_type in enumerate(unique_types):
-            y_pos = 55 + i * 20
+            y_pos = 35 + i * 18
+            color = self.colors[node_type]
             
-            # Icon
-            icon = SubElement(legend_group, 'use', {
-                'href': f'#{node_type}-icon',
-                'x': str(width - 180),
-                'y': str(y_pos)
+            # Color circle
+            circle = SubElement(legend_group, 'circle', {
+                'cx': '15',
+                'cy': str(y_pos),
+                'r': '5',
+                'fill': color,
+                'stroke': '#ffffff',
+                'stroke-width': '1'
             })
             
             # Label
             label = SubElement(legend_group, 'text', {
-                'x': str(width - 160),
-                'y': str(y_pos + 5),
-                'fill': 'white',
-                'font-size': '13px'
+                'x': '25',
+                'y': str(y_pos + 4),
+                'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                'font-size': '11px',
+                'fill': '#333333'
             })
-            label.text = node_type.capitalize()
+            
+            # Format label
+            formatted_name = node_type.replace('_', ' ').title()
+            if formatted_name == 'C2':
+                formatted_name = 'Command & Control'
+            elif formatted_name == 'Technique Name':
+                formatted_name = 'Technique'
+            
+            label.text = formatted_name[:18]
+        
+        # Stats
+        node_count = len(graph_data.get('nodes', []))
+        link_count = len(graph_data.get('links', []))
+        
+        stats = SubElement(legend_group, 'text', {
+            'x': '90',
+            'y': str(legend_height - 10),
+            'text-anchor': 'middle',
+            'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            'font-size': '9px',
+            'fill': '#666666'
+        })
+        stats.text = f'{node_count} nodes • {link_count} links'
+    
+    def _add_d3_title(self, container, graph_type, width):
+        """Add D3.js-style title"""
+        title_map = {
+            'steps': 'Operation Steps',
+            'attackpath': 'Attack Path',
+            'fact': 'Facts Network',
+            'tactic': 'Tactics',
+            'technique': 'Techniques'
+        }
+        
+        title_text = title_map.get(graph_type, f'{graph_type.title()} Graph')
+        
+        # Title background
+        title_bg = SubElement(container, 'rect', {
+            'x': '20',
+            'y': '20',
+            'width': str(len(title_text) * 8 + 20),
+            'height': '25',
+            'rx': '4',
+            'fill': 'rgba(255,255,255,0.9)',
+            'stroke': 'rgba(0,0,0,0.2)',
+            'filter': 'url(#d3Shadow)'
+        })
+        
+        # Title text
+        title = SubElement(container, 'text', {
+            'x': '30',
+            'y': '37',
+            'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            'font-size': '14px',
+            'font-weight': '600',
+            'fill': '#333333'
+        })
+        title.text = title_text
