@@ -7,7 +7,7 @@
     name: "Scheduled Task/Job: Scheduled Task"
   requirements:
     - plugins.stockpile.app.requirements.existential:
-        - source: domain.user.impersonated
+        - source: ddomain.admin.pwned
         - source: domain.controller.hostname
   platforms:
     windows:
