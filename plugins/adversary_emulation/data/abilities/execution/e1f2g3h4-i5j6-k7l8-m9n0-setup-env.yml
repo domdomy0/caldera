@@ -9,11 +9,11 @@
     windows:
       psh:
         command: |
-          $stagingDir = "C:\Users\Public"
-          $lootDir = "$stagingDir\Loot"
-          New-Item -Path $lootDir -ItemType Directory -ErrorAction SilentlyContinue
-          Write-Host "Staging-Directory: $stagingDir"
-          Write-Host "Loot-Directory: $lootDir"
+          $stagingDir = "C:\Users\Public";
+          $lootDir = "$stagingDir\Loot";
+          New-Item -Path $lootDir -ItemType Directory -ErrorAction SilentlyContinue;
+          Write-Host "Staging-Directory: $stagingDir";
+          Write-Host "Loot-Directory: $lootDir";
         parsers:
           plugins.adversary_emulation.app.parsers.regex_parser:
             - source: 'env.dir.stage'
