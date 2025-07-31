@@ -7,3 +7,4 @@ atomic_ordering:
 - 81250e3d-bafd-41ef-b7de-certreq-esc1 # CertReq to get TGT for DA
 - ae1831b1-b435-4864-ae7f-rubeus-asktgt # Rubeus AskTGT for DA
 - 5b6c7d8e-9f0a-1b2c-3d4e-verifydarights # Verify Domain Admin Rights
+- e3a1b4c2-d5e6-4f7a-8b9c-DC-sched          # Persistence - Create and Start Privileged Task on DC
