@@ -2,22 +2,26 @@ id: 0a4f32d3-a4b5-6c7d-8e9f-full-emu
 name: 0_Full_Emulation_Plan
 description: Adversary profile for thesis ransomware precursor emulation.
 atomic_ordering:
+# Phase 1: Initial Recon and Persistence
 - e1f2g3h4-i5j6-k7l8-m9n0-setup-env         # Setup - Set Stage and Loot Directories
 - 5b3310a2-2a31-4560-a2a3-1951515ea1e4      # System Network Configuration Discovery
 - 4e9b9821-b353-4155-9430-5881023c1043      # Domain Trust Discovery - Domain Controller
 - e6824b53-b21b-4f4a-9e19-482d8a43697e      # Enum Domain Users
 - c3b4d5e6-f7a8-49b0-9c1d-ldap-domain-admins # Enum Domain Admins via LDAP
 - 7d2d7e30-1a73-45d5-8a24-943a41c6999a      # Persistence Run Key as User
+# Phase 2: Privilege Escalation and Domain Admin Access
 - 8a48e4a9-e41c-433b-a67b-11756a93b45a      # Discovery - Find Writable Services
 - f0c1d2e3-a4b5-4c6d-8e7f-9a0b1c2d3e4f      # Privilege Escalation - Service binPath Hijack via Custom C# Launcher
 - 2f7a8b3c-1b9d-4e8f-9a3d-5c6b7e0a9d1f      # Privilege Escalation - Start Service
 - e3a1b4c2-d5e6-4f7a-8b9c-0d1e2f3a4b5c      # Persistence - Privileged Scheduled Task (On Startup)
+# Phase 3: Later Movement and Domain Admin
 - 4a2b3c4d-5e6f-7a8b-9c0d-getcaname         # Get ACDS CA Auth Name
 - 92cb926e-1e63-4ec3-9b47-certify-esc1      # Certify find vulnerable Templates ECS1
 - 81250e3d-bafd-41ef-b7de-certreq-esc1      # CertReq to get TGT for DA
 - ae1831b1-b435-4864-ae7f-rubeus-asktgt     # Rubeus AskTGT for DA
 - 5b6c7d8e-9f0a-1b2c-3d4e-verifydarights    # Verify Domain Admin Rights
 - e3a1b4c2-d5e6-4f7a-8b9c-DC-sched          # Persistence - Create and Start Privileged Task on DC
+# Phase 4: Collection and Exfiltration
 - 7d8e9f0a-1b2c-3d4e-5f6g-collectfiles      # Collection - Search and Stage Sensitive Files
 - 1a2b3c4d-e5f6-7a8b-9c0d-ntds-dump         # Collection - Remotely Dump NTDS via ntdsutil
 - 2b3c4d5e-f6g7-8b9c-0d1e-ntds-copy         # NTDS Dump on DC
